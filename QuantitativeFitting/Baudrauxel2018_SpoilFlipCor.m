@@ -1,6 +1,9 @@
-function alpha_prime = Baudrauxel2018_SpoilFlipCor(nominal_flip_angle, b1_map, TR, spoiling)
+function alpha_prime = Baudrexel2018_SpoilFlipCor(nominal_flip_angle, b1_map, TR, spoiling)
 % This function corrects for incomplete RF spoiling of the transverse
-% magnetization as reported in Baudrauxel et al 2018 MRM. 
+% magnetization as reported in :
+% Baudrexel, et al. "T1 mapping with the variable flip angle technique: a simple correction 
+% for insufficient spoiling of transverse magnetization." Magnetic resonance in medicine 
+% 79.6 (2018): 3082-3092.
 
 % Input Parameters:
 % nominal_flip_angle -> flip angle prescribed in the sequence (in degrees)
