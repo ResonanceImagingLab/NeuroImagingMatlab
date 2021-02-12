@@ -64,7 +64,7 @@ end
 
 %% Generate the modified flip angle map
 alpha = nominal_flip_angle *b1_map;
-C = solve(string);
+C = eval(string);
 alpha_prime = alpha * C;
 
 
