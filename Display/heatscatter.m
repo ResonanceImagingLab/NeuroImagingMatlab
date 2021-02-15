@@ -1,4 +1,4 @@
-function outfile = heatscatter(X, Y,cmap,outpath, outname, numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
+function outfile = heatscatter(X, Y,cmap,numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
 
 % Taken from here: https://www.mathworks.com/matlabcentral/fileexchange/47165-heatscatter-plot-for-variables-x-and-y?focused=3827781&tab=function&s_tid=gn_loc_drop
 % My edits include:
