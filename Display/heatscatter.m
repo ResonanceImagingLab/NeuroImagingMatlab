@@ -50,28 +50,16 @@ function outfile = heatscatter(X, Y,cmap,outpath, outname, numbins, markersize, 
     if ~exist('Y','var') || isempty(Y)
         error('Param Y is mandatory! --> EXIT!');
     end
+
+    %%%% optional
     if ~exist('cmap','var')
          cmap = parula;
     end
-%     if ~exist('outpath','var')
-%          %error('Param outpath is mandatory! --> EXIT!');
-%     end
-%     if ~exist('outname','var') || isempty(outname)
-%         %error('Param outname is mandatory! --> EXIT!');
-%     end
-    
-    %%%% optional
     if ~exist('numbins','var') || isempty(numbins)
         numbins = 70;
-    else
-        % force number, not char input
-        numbins = str2double(numbins);
     end
     if ~exist('markersize','var') || isempty(markersize)
         markersize = 1;
-    else
-        % force number, not char input
-        markersize = str2double(markersize);
     end
     if ~exist('marker','var') || isempty(marker)
         marker = '.';
