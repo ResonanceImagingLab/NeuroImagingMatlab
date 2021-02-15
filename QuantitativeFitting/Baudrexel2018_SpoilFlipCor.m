@@ -4,6 +4,8 @@ function alpha_prime = Baudrexel2018_SpoilFlipCor(nominal_flip_angle, b1_map, TR
 % Baudrexel, et al. "T1 mapping with the variable flip angle technique: a simple correction 
 % for insufficient spoiling of transverse magnetization." Magnetic resonance in medicine 
 % 79.6 (2018): 3082-3092.
+% Always check your sequence for spoiling. If you don't have access to this information, try:
+% GE scanner = 117, Siemens = 50, Philips = 150 
 
 % Input Parameters:
 % nominal_flip_angle -> flip angle prescribed in the sequence (in degrees)
