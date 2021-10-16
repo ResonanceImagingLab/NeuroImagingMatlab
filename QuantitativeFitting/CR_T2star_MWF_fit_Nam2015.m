@@ -142,3 +142,149 @@ MWF = A_my ./ (A_my + A_ax + A_ex + 0.000001); % add a small number to prevent d
 
 
 
+%%%%%%% Potentially useful code: from David Rudko
+   
+
+% mag and phase matrix size dimension: np x nv x ns x ne
+
+np=imsize(1); nv=imsize(2); ns=imsize(3); ne=imsize(4);
+
+ 
+
+%% mask
+
+mag_masked = mag.*mask;
+
+img_complex=mag_masked.*exp(1i*ph);
+
+ 
+
+%%
+
+disp('Computing Local Field Gradients');
+
+LFGro = zeros([np nv ns]);
+
+LFGpe1 = zeros([np nv ns]);
+
+LFGpe2 = zeros([np nv ns]);
+
+denom = 2*pi*42.575e6 *(TE(2)-TE(1))* 2*1e-3;
+
+ 
+
+%   Compute RO field gradient
+
+W = zeros(np,nv,ns);X = zeros(np,nv,ns);
+
+Y = zeros(np,nv,ns);Z = zeros(np,nv,ns);
+
+W(1:np-1,:,:) = img_complex(2:np,:,:,2)./abs(img_complex(2:np,:,:,2));
+
+X(1:np-1,:,:) = conj(img_complex(2:np,:,:,1))./abs(img_complex(2:np,:,:,1));
+
+Y(2:np,:,:) = conj(img_complex(1:np-1,:,:,2))./abs(img_complex(1:np-1,:,:,2));
+
+Z(2:np,:,:) = img_complex(1:np-1,:,:,1)./abs(img_complex(1:np-1,:,:,1));
+
+LFGro = angle(W.*X.*Y.*Z)/(denom*vox(1));
+
+ 
+
+%   Compute PE1 field gradient
+
+W = zeros(np,nv,ns);X = zeros(np,nv,ns);
+
+Y = zeros(np,nv,ns);Z = zeros(np,nv,ns);
+
+W(:,1:nv-1,:)=img_complex(:,2:nv,:,2)./abs(img_complex(:,2:nv,:,2));
+
+X(:,1:nv-1,:)=conj(img_complex(:,2:nv,:,1))./abs(img_complex(:,2:nv,:,1));
+
+Y(:,2:nv,:)=conj(img_complex(:,1:nv-1,:,2))./abs(img_complex(:,1:nv-1,:,2));
+
+Z(:,2:nv,:)=img_complex(:,1:nv-1,:,1)./abs(img_complex(:,1:nv-1,:,1));
+
+LFGpe1=angle(W.*X.*Y.*Z)/(denom*vox(2));
+
+ 
+
+%   Compute PE2 field gradient
+
+W = zeros(np,nv,ns);X = zeros(np,nv,ns);
+
+Y = zeros(np,nv,ns);Z = zeros(np,nv,ns);
+
+W(:,:,1:ns-1)=img_complex(:,:,2:ns,2)./abs(img_complex(:,:,2:ns,2));
+
+X(:,:,1:ns-1)=conj(img_complex(:,:,2:ns,1))./abs(img_complex(:,:,2:ns,1));
+
+Y(:,:,2:ns)=conj(img_complex(:,:,1:ns-1,2))./abs(img_complex(:,:,1:ns-1,2));
+
+Z(:,:,2:ns)=img_complex(:,:,1:ns-1,1)./abs(img_complex(:,:,1:ns-1,1));
+
+LFGpe2=angle(W.*X.*Y.*Z)/(denom*vox(3));
+
+ 
+
+LFG_square=(LFGro.^2+LFGpe1.^2+LFGpe2.^2);
+
+ 
+
+ 
+
+%%
+
+%   Create filter kernel. Can adjust convolution width (mm)
+
+width = 2.5 .* [1/vox(1) 1/vox(2) 1/vox(3)];
+
+wWIN = round(width*1.25);
+
+wWIN = wWIN + (wWIN < 2);
+
+wWIN = wWIN + ~mod(wWIN,2);
+
+WIN = repmat(gausswin(wWIN(1),wWIN(1)/width(1)),[1 wWIN(2) wWIN(3)]);
+
+WIN = WIN .* repmat(gausswin(wWIN(2),wWIN(2)/width(2))',[wWIN(1) 1 wWIN(3)]);
+
+WIN = WIN .* repmat(reshape(gausswin(wWIN(3),wWIN(3)/width(3)),[1 1 wWIN(3)]),[wWIN(1) wWIN(2) 1]);
+
+WIN = WIN./sum(WIN(:));
+
+ 
+
+ 
+
+%   Compute susceptibility corrected image
+
+%   Initialize corrected image
+
+disp('Computing Susceptibility Corrected Images');
+
+imgC = zeros(size(img_complex),'double');
+
+weights = zeros(np,nv,ns,ne,'double');
+
+for i = 1:ne
+
+    wi = sinc(42.575e6 * LFGro * vox(1)  *1e-3 * TE(i)) .* ...
+
+         sinc(42.575e6 * LFGpe1* vox(2)  *1e-3 * TE(i)) .* ...
+
+         sinc(42.575e6 * LFGpe2* vox(3)  *1e-3 * TE(i));
+
+%         wi = convn(wi,WIN,'same');
+
+    wi = convn(wi.*mag_masked(:,:,:,i),WIN,'same')./convn(mag_masked(:,:,:,i),WIN,'same');
+
+    weights(:,:,:,i) = wi;
+
+    weights(weights < 0.25) = Inf;
+
+    imgC(:,:,:,i) = mag_masked(:,:,:,i) ./ weights(:,:,:,i);
+
+end
+
+weights(weights == Inf) = 0;
