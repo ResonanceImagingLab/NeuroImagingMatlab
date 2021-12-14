@@ -51,10 +51,10 @@ function outfile = heatscatter(X, Y,cmap, numbins, markersize, marker, plot_colo
          cmap = parula;
     end
     if ~exist('numbins','var') %|| isempty(numbins)
-        numbins = 70;
+        numbins = 100;
     end
     if ~exist('markersize','var') || isempty(markersize)
-        markersize = 1;
+        markersize = 3;
     end
     if ~exist('marker','var') || isempty(marker)
         marker = '.';

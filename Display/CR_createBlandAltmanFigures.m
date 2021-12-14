@@ -1,4 +1,4 @@
-function CR_createBlandAltmanFigures( input1, input2, inputText   )
+function CR_createBlandAltmanFigures( input1, input2, inputText, nbins, BAylim   )
 
 % This code generates two plots:
 % 1. is a correlation plot between input1 and input2
@@ -12,15 +12,26 @@ function CR_createBlandAltmanFigures( input1, input2, inputText   )
 % inputText.BAyLabel = ['Difference Between ',inputText.input1Label, ' and ', inputText.input2Label]; % customize if you want it to be different!
 % inputText.outputFigureName = 'Filename'; % optional field if you want the figure saved
 
+% nbins is for the heatscatter plots
+%BAylim is so that you can set limits that are the same between two plots. 
+
 input1 = double(input1);
 input2 = double(input2);
 
+if ~exist( 'nbins', 'var')
+    nbins = 100;
+end
+
+if ~exist( 'BAylim', 'var')
+    BAylim = [];
+end
 
 if ~isfield(inputText, 'BAxLabel')
     inputText.BAxLabel = 'Average of Two Methods';
 end
 if ~isfield(inputText, 'BAyLabel')
-    inputText.BAyLabel = ['Difference Between ',inputText.input1Label, ' and ', inputText.input2Label];
+    %inputText.BAyLabel = ['Difference Between ',inputText.input1Label, ' and ', inputText.input2Label];
+    inputText.BAyLabel = ['Difference'];
 end
 
 % First plot is correlation between two dataset
@@ -30,7 +41,7 @@ fit_calc = FitInput1Input2(x_val);
 
 figure;
     subplot(1, 2 ,1)
-    heatscatter(input1,input2, parula, 20)
+    heatscatter(input1,input2, parula,nbins, 10)
     hold on
     plot(x_val,fit_calc,'LineWidth',2)
     hline = refline(1,0);
@@ -47,7 +58,7 @@ figure;
     title('Correlation Plot' , 'FontSize', 18, 'FontWeight', 'bold')
     colorbar('off')
     legend('Data','Fit Line', 'Unity Line','location','southeast')
-    set(gcf,'position',[200,400,1600,800])
+    set(gcf,'position',[200,400,1200,500])
 
 %% Second Plot is the Bland Altmann plot - SINGLE CODE
 
@@ -58,7 +69,7 @@ BA_lineshift = 1.96*BA_std;
 BA_mean = nanmean(BA_yval);
 
 subplot(1,2,2)
-    heatscatter(BA_xval,BA_yval, parula,20)
+    heatscatter(BA_xval,BA_yval, parula,nbins, 10)
     hold on
     % add lines
     % Lower line
@@ -80,11 +91,15 @@ subplot(1,2,2)
     hline.LineWidth = 2;
     
     xlim([min(BA_xval)*0.98 max(BA_xval)*1.02])
-    ylim([min(BA_yval)*0.98 max(BA_yval)*1.02])
+    if isempty(BAylim)
+        ylim([min(BA_yval)*0.98 max(BA_yval)*1.02])
+    else
+        ylim(BAylim)
+    end
     ax = gca;
     ax.FontSize = 18; 
     xlabel( inputText.BAxLabel, 'FontSize', 18, 'FontWeight', 'bold')
-    ylabel( inputText.BAyLabel, 'FontSize', 14, 'FontWeight', 'bold')
+    ylabel( inputText.BAyLabel, 'FontSize', 18, 'FontWeight', 'bold')
     colorbar('off')
     title('Bland-Altman Plot' , 'FontSize', 18, 'FontWeight', 'bold')
     
