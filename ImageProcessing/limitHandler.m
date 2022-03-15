@@ -3,6 +3,7 @@ function output = limitHandler(input, varargin)
 
 input(isinf(input)) = 0;
 input(isnan(input)) = 0;
+input = abs(input); % take care of complex
 
 if nargin == 3 
     lowerLimit = varargin{1};
