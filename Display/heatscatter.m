@@ -1,9 +1,5 @@
-function outfile = heatscatter(X, Y,cmap,numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
+function outfile = heatscatter(X, Y,cmap, numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
 
-% Taken from here: https://www.mathworks.com/matlabcentral/fileexchange/47165-heatscatter-plot-for-variables-x-and-y?focused=3827781&tab=function&s_tid=gn_loc_drop
-% My edits include:
-% - remove the file saving
-% - modification to add in the colour map input option.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% heatscatter(X, Y, outpath, outname, numbins, markersize, marker, plot_colorbar, plot_lsf, xlab, ylab, title)
@@ -42,7 +38,6 @@ function outfile = heatscatter(X, Y,cmap,numbins, markersize, marker, plot_color
 %          good sample call: heatscatter(X,Y, copper,1,'.')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
     %%%% mandatory
     if ~exist('X','var') || isempty(X)
         error('Param X is mandatory! --> EXIT!');
@@ -55,11 +50,11 @@ function outfile = heatscatter(X, Y,cmap,numbins, markersize, marker, plot_color
     if ~exist('cmap','var')
          cmap = parula;
     end
-    if ~exist('numbins','var') || isempty(numbins)
-        numbins = 70;
+    if ~exist('numbins','var') %|| isempty(numbins)
+        numbins = 100;
     end
     if ~exist('markersize','var') || isempty(markersize)
-        markersize = 1;
+        markersize = 3;
     end
     if ~exist('marker','var') || isempty(marker)
         marker = '.';
