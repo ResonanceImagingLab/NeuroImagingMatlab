@@ -26,6 +26,7 @@ H = fspecial3('gaussian', f_w, fwhm);
 
 %% mask the values in image
 img(mask < 1) = NaN;
+img(img <0.5) = NaN; % fix issue with siemens double angle data in the CSF.
 
 %% Need to pad the image
 

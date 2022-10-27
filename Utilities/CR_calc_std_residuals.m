@@ -8,11 +8,25 @@ Val_lev = (1/N_vals) + ( (Yval2fit - Val_mean).^2 )./  Val_devsq; % should get a
 
 std_resid = zeros( length(fitCoeffMat),  1);
 
-for i = 1:length(fitCoeffMat) 
-    
-    y_fit = polyval(fitCoeffMat(i,:) ,Xval2fit); % calculate fit curve
+
+
+[x,y] = size(fitCoeffMat);
+
+if min([x,y])  == 1    % for 1D case
+    y_fit = polyval(fitCoeffMat ,Xval2fit); % calculate fit curve
     resid = (y_fit-Yval2fit); % residuals between fit curve and data points
     s_Error = sqrt( (1/(N_vals-1)) * sum(resid.^2) ); % standard error
-    std_resid(i) = sum( resid ./ sqrt(s_Error .* (1- Val_lev) ) ); % standardized residuals
-    
+    std_resid = sum( resid ./ sqrt(s_Error .* (1- Val_lev) ) ); % standardized residuals
+
+else
+
+
+    for i = 1:length(fitCoeffMat) 
+        
+        y_fit = polyval(fitCoeffMat(i,:) ,Xval2fit); % calculate fit curve
+        resid = (y_fit-Yval2fit); % residuals between fit curve and data points
+        s_Error = sqrt( (1/(N_vals-1)) * sum(resid.^2) ); % standard error
+        std_resid(i) = sum( resid ./ sqrt(s_Error .* (1- Val_lev) ) ); % standardized residuals
+        
+    end
 end
