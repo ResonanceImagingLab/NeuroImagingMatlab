@@ -83,8 +83,8 @@ if ~isfile(fnJSON)
     param.TR_ms              = [14,14];
     param.Phi0_deg           = 50;              % RF spoil increment[deg]
     param.B1range            = 0.6:0.05:1.4;    % convert such that 100% = 1
-    param.Gdur_ms            = 3.3876;          % [ms]
-    param.Gamp_mT_per_m      = 26;              % [[mT/m]
+    param.Gdur_ms            = 1.475;          % [ms]
+    param.Gamp_mT_per_m      = 24;              % [[mT/m]
     param.T1range_ms         = 600:100:2500;  %[ms]
     param.T2range_ms         = 50;            % [ms]
     param.D_um2_per_ms       = 0.8;           % [um^2/ms]
