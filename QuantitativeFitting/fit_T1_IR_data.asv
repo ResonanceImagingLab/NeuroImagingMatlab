@@ -56,20 +56,36 @@ if strcmp(method,'Magnitude')
 end
 
 
-tic
-for i = 1:numVox
-    switch method
-        case{'Complex'}
-            [T1(i),b(i),a(i),res(i)] = rdNls( data(i,:), nlsS);
-        case{'Magnitude'}
-            [T1(i),b(i),a(i),res(i),idx(i)] = rdNlsPr( data(i,:), nlsS);
-    end
-    if mod(i,1000) == 0
-        str = [num2str(i/numVox * 100), '% done'];
-        disp(str)
+for i = 1:x
+    for j = 1:y
+        for k = 1:z
+            if mask(i,j,k) > 0
+            [T1map(i,j,k),bmap(i,j,k),amap(i,j,k),resmap(i,j,k),idxmap(i,j,k)] = rdNlsPr( data(i,:), nlsS);
+            end
+        end
     end
 end
-toc
+
+
+
+
+
+
+
+% tic
+% for i = 1:numVox
+%     switch method
+%         case{'Complex'}
+%             [T1(i),b(i),a(i),res(i)] = rdNls( data(i,:), nlsS);
+%         case{'Magnitude'}
+%             [T1(i),b(i),a(i),res(i),idx(i)] = rdNlsPr( data(i,:), nlsS);
+%     end
+%     if mod(i,1000) == 0
+%         str = [num2str(i/numVox * 100), '% done'];
+%         disp(str)
+%     end
+% end
+% toc
 
 
 % Convert it back:
