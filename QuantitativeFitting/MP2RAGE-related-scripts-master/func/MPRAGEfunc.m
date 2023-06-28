@@ -111,7 +111,7 @@ if waterexcitation
     
 end
 
-%% steady state calculation
+%% steady state calculation- see Marques et al., 2010 Appendix
 
 MZsteadystate = 1./(1+inversionefficiency*(prod(cosalfaE1))^(nZslices).*prod(E_TD));
 MZsteadystatenumerator = M0*(1-E_TD(1));
