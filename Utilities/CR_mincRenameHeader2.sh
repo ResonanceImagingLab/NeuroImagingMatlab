@@ -1,14 +1,19 @@
 #!/bin/sh
 
 
+## TO DO -> does prescan normalize show up?
+# add in the series number
+
+
 ## The goal of this script is to use the minc header information 
 ## to rename the file
 
-# This version takes two inputs. 
+# This second version takes two inputs. 
 # The first is the directory of the original minc files,
 # the second input in the output directory of the renamed files
 
 # Created by Christopher Rowley 2021
+#############################################################################
 
 ## Quick check of the inputs and check ending slash consistency (don't want it)
 inputs=$(echo "$1" | sed 's:/*$::')
@@ -44,6 +49,11 @@ done > $outputs/names.txt
 paste $outputs/names.txt $outputs/rename2.txt | while IFS=$'\t' read -r names renames2; do 
     num=0
     while [ -e "$outputs/$renames2.mnc.gz" ]; do
+        if [num -gt 0]
+        then
+            # remove number added in last iteration, which happens when num > 0
+            renames2="${renames2::-1}"
+        fi
         num=$(( num + 1 ))
         renames2="$renames2$num"
     done
