@@ -87,8 +87,9 @@ end
 % else
 %     MP2RAGEimg.img = double(MP2RAGEimg.img)/4095-0.5;
 % end
-
-MP2RAGEimg.img = double(MP2RAGEimg.img)/4095-0.5;
+if max(MP2RAGEimg(:).img) > 0.55
+    MP2RAGEimg.img = double(MP2RAGEimg.img)/4095-0.5;
+end
 %% now the fun starts
 
 % creates a lookup table of MP2RAGE intensities as a function of B1 and T1
