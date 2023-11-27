@@ -176,8 +176,8 @@ imshow(squeeze(Img(:,:,S,:)), [Rmin Rmax])
         boundaries = bwboundaries(squeeze(seg(:,:,S)));
         for k = 1:size(boundaries,1)
             bound = boundaries{k};
-            p = plot(bound(:,2),bound(:,1),'g','LineWidth',0.5);
-            p.Color = 'g';
+            p = plot(bound(:,2),bound(:,1),'r','LineWidth',0.5);
+            p.Color = 'r';
         end
         hold off
 
@@ -480,7 +480,7 @@ set(gcf,'ResizeFcn', @figureResized)
             boundaries = bwboundaries(squeeze(seg(:,:,S)));
             for k = 1:size(boundaries,1)
                 bound = boundaries{k};
-                plot(bound(:,2),bound(:,1),'Color','g','LineWidth',0.5); %
+                plot(bound(:,2),bound(:,1),'Color','r','LineWidth',0.5); %
             end
     end
 
