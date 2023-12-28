@@ -13,6 +13,7 @@
 # the second input in the output directory of the renamed files
 
 # Created by Christopher Rowley 2021
+# non-gzip
 #############################################################################
 
 ## Quick check of the inputs and check ending slash consistency (don't want it)
@@ -23,7 +24,7 @@ echo "The input directory is $inputs"
 echo "The output directory is $outputs"
 
 ## Generate text file of header names
-for filename in $inputs/*.mnc.gz; do 
+for filename in $inputs/*.mnc; do 
 OUTPUT=$(mincheader $filename | grep -i acquisition:series_description)
 echo "${OUTPUT}"
 done > $outputs/rename.txt
@@ -37,7 +38,7 @@ sed -i -e 's/acquisition:series_description="//g' $outputs/rename2.txt
 sed -i -e 's/";//g' $outputs/rename2.txt
 
 ## Create text document with filenames
-for filename in $inputs/*.mnc.gz; do 
+for filename in $inputs/*.mnc; do 
 echo "${filename}"
 done > $outputs/names.txt
 
@@ -48,7 +49,7 @@ done > $outputs/names.txt
 # The while loop checks to see if a file exists with that name, if so, then it adds a number
 paste $outputs/names.txt $outputs/rename2.txt | while IFS=$'\t' read -r names renames2; do 
     num=0
-    while [ -e "$outputs/$renames2.mnc.gz" ]; do
+    while [ -e "$outputs/$renames2.mnc" ]; do
         if [ $num -gt 0 ]
         then
             # remove number added in last iteration, which happens when num > 0
@@ -59,7 +60,7 @@ paste $outputs/names.txt $outputs/rename2.txt | while IFS=$'\t' read -r names re
     done
     echo $renames2   
     sleep 0.5
-    cp -i -- "$names" "$outputs/$renames2.mnc.gz"
+    cp -i -- "$names" "$outputs/$renames2.mnc"
 done
 
 rm $outputs/names.txt
