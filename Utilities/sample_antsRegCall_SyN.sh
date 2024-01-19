@@ -32,7 +32,7 @@ antsRegistration --dimensionality 3 --float 0 \
         --shrink-factors 8x4x2x1 \  
         --smoothing-sigmas 3x2x1x0vox \  
 
-antsApplyTransforms -d 3 -i $brain -r $template -n BSpline -o $outputDir/$regnaming -t $outputDir/$regnaming"0_GenericAffine.xfm" --float
+
 TRANSFORM=$outputDir/$regnaming"1Warp.nii.gz"
 TRANSFORMaffine=$outputDir/$regnaming"0_GenericAffine.mat" # could be a .mat file or .xfm
 
