@@ -5,7 +5,12 @@ function [imaVOL,scaninfo] = loadminc2(filename)
 % Function to load minc format input file. 
 % This function use the netcdf MATLAB utility
 %
-% Built to read MINC2 HDF files
+% Built to read MINC2 HDF files - HDF5 - another file format library (used for MINC2)
+% look at minc_read in mominc-master for help. I started changing it, the
+% main problem was they used hdf5info, which is no longer a supported
+% matlab function.
+
+%
 % Christopher Rowley 2023
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -19,7 +24,7 @@ end
 
 
 
-
+%% OLD FOR netcdf - akak minc1
 if nargin == 0
      [FileName, FilePath] = uigetfile('*.mnc','Select minc file');
      filename = [FilePath,FileName];
