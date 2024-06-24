@@ -305,9 +305,9 @@ curr_pos = 1; % Initialize starting positions
 ind = [ind length(tmp)];
 for num_dim = 1:nb_dims % Iterate from 1 to # of dimensions 
     hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1); % Storing names of the dimensions in the order they appear in dimorder 
-    %disp(hdr.dimension_order{num_dim})
-    curr_pos = ind(num_dim)+1; % Updates curr)pos to one just after the comma 
-    %curr_pos = ind(num_dim);
+    disp(hdr.dimension_order{num_dim})
+    %curr_pos = ind(num_dim)+1; % Updates curr)pos to one just after the comma 
+    curr_pos = ind(num_dim);
     %disp(curr_pos)
 end
 % Reversing order of elements in hdr.dimensions_order (why yspace first) 
