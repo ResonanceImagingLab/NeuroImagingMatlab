@@ -286,11 +286,7 @@ for num_global = 1:length(list_globals)
 end
 
 %% Extract dimension order in a usable format
-% h5disp(file_name,'/minc-2.0/image/0/image/'); % Use to look at contents
-% There is a spacing issue with yspace. This is the section where the
-% dimension orders are defined.
-% I checked for different files and all have the same spacing issue where
-% yspace has a space after it. Need to find where/why it is doing this 
+% h5disp(file_name,'/minc-2.0/image/0/image/');
 
 tmp = h5readatt(file_name,'/minc-2.0/image/0/image','dimorder'); % specifically reading attribute name dimorder (should be xspace, zspace, yspace)
 ind = strfind(tmp,','); 
