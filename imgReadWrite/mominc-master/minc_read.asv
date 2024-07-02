@@ -286,7 +286,11 @@ for num_global = 1:length(list_globals)
 end
 
 %% Extract dimension order in a usable format
-% h5disp(file_name,'/minc-2.0/image/0/image/');
+% h5disp(file_name,'/minc-2.0/image/0/image/'); % Use to look at contents
+% There is a spacing issue with yspace. This is the section where the
+% dimension orders are defined.
+% I checked for different files and all have the same spacing issue where
+% yspace has a space after it. Need to find where/why it is doing this 
 
 tmp = h5readatt(file_name,'/minc-2.0/image/0/image','dimorder'); % specifically reading attribute name dimorder (should be xspace, zspace, yspace)
 ind = strfind(tmp,','); 
@@ -348,12 +352,10 @@ hdr.details.data.image_max = h5read(file_name,'/minc-2.0/image/0/image-max');
 
 %% Read Image info
 mask_image  = ismember(labels,'/minc-2.0/image'); 
-list_image = {str_data.Groups.Groups(mask_image).Groups.Datasets(:).Name}; 
-for num_d = 1:length(list_image)  
+list_image = {str_data.Groups.Groups(mask_image).Groups.Datasets(:).Name}; h
+for num_d = 1:length(list_image) % Iterate over each element in list_image 
     %hdr.details.image(num_d).name        = list_image{num_d}(19:end);
-    % ^ A.D--? made this change as Groups.Hierarchy no longer exists so
-    %           19:end no longer valid 
-    hdr.details.image(num_d).name        = list_image{num_d}; 
+    hdr.details.image(num_d).name        = list_image{num_d}; % Assign full dataset name from list_image{num_d}
     hdr.details.image(num_d).attributes  = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Name};
     hdr.details.image(num_d).values      = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Value};
 end
@@ -363,7 +365,7 @@ end
 %% Read volume
 if nargout>1
     % vol = hdf5read(file_name,'/minc-2.0/image/0/image');
-    vol = h5read(file_name,'/minc-2.0/image/0/image');
+    vol = h5read(file_name,'/minc-2.0/image/0/image'); % Read image data from designated path 
     vol = double(vol); % Convert everything to double to avoid problems, even if that's dirty
 end
 end 
