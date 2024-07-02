@@ -48,16 +48,15 @@ end
 info_v.dimensions = hdr.dimension_order;
 
 %% For each dimension, get the step, start and cosines information
-start_v = zeros([3 1]); % Store starting coordinates for each dimension 
-cosines_v = eye([3 3]); % Store direction cosines  (orientation) of each dimension 
-step_v = zeros([1 3]);  % Store step sizes (spacing) between voxels in each dimension
-info_v.voxel_size = zeros([1 3]); % Store voxel sizes (absolute values of the steps) 
+start_v = zeros([3 1]); 
+cosines_v = eye([3 3]); 
+step_v = zeros([1 3]);  
+info_v.voxel_size = zeros([1 3]); 
 
-num_e = 1; % track current dimension being processed 
+num_e = 1; 
 
-for num_d = 1:length(info_v.dimensions) % Iterate over each dimension in info_v.dimensions
-    dim_name = info_v.dimensions{num_d}; % Assign name of current dimension to dim_name 
-    %disp(dim_name);
+for num_d = 1:length(info_v.dimensions) 
+    dim_name = info_v.dimensions{num_d}; 
 
     if ~strcmp(dim_name,'time')
         if strcmp(hdr.type,'minc1')
@@ -65,6 +64,7 @@ for num_d = 1:length(info_v.dimensions) % Iterate over each dimension in info_v.
             start_v(num_e) = minc_variable(hdr,dim_name,'start');
             step_v(num_e) = minc_variable(hdr,dim_name,'step');
         else % Extraction of dimension details for MINC2 
+            % A.D --> changes made to match new h5info 
             %cosines_v(:,num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/direction_cosines']);
             cosines_v(:,num_e) = minc_variable(hdr,dim_name,'direction_cosines');
             %start_v(num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/start']);
@@ -89,22 +89,3 @@ info_v.mat = eye(4); % 4x4 identity matrix used to construct the affine tansform
 info_v.mat(1:3,1:3) = cosines_v * (diag(step_v));
 info_v.mat(1:3,4)   = cosines_v * start_v;
 
-%% Testing 
-    % if ~strcmp(dim_name,'time')
-    %     dim_path = ['/minc-2.0/dimensions/' dim_name];
-    %     if strcmp(hdr.type, 'minc2')
-    %         % Read the attributes from the HDF5 file
-    %         cosines_v(:, num_e) = h5readatt(hdr, dim_path, 'direction_cosines');
-    %         start_v(num_e) = h5readatt(hdr, dim_path, 'start');
-    %         step_v(num_e) = h5readatt(hdr, dim_path, 'step');
-    %     else
-    %         % Handling for MINC 1 (if applicable)
-    %         cosines_v(:, num_e) = minc_variable(hdr, dim_name, 'direction_cosines');
-    %         start_v(num_e) = minc_variable(hdr, dim_name, 'start');
-    %         step_v(num_e) = minc_variable(hdr, dim_name, 'step');
-    %     end       
-    %     num_e = num_e + 1;
-    % else        
-    %     info_v.tr = minc_variable(hdr,'time','step');
-    %     info_v.t0 = minc_variable(hdr,'time','start');
-    % end

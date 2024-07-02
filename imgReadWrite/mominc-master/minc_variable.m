@@ -61,7 +61,6 @@ end
 
 if nargin >= 2
     ind = find(ismember(list_var,dim_name));
-    %ind = (ismember(list_var,dim_name)); % Checks for presence of dim_name in list_var 
     % If dim_name not found, this error is thrown 
     if isempty(ind)
         error('Could not find variable %s in HDR',dim_name)
@@ -83,4 +82,4 @@ ind2 = find(ismember(list_att,att_name)); % checks for presence of att_name in l
 if isempty(ind2)
     error('Could not find attribute %s in variable %s',att_name,dim_name)
 end
-val = varminc.values{ind2}; % If founf, retrieves value of the attribute from varminc.values based on index ind2 and assigns to val 
+val = varminc.values{ind2}; % If found, retrieves value of the attribute from varminc.values based on index ind2 and assigns to val 
