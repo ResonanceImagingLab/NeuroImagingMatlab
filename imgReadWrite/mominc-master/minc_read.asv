@@ -155,7 +155,6 @@ else
     else
         % str_data = hdf5info(file_name);
         str_data = h5info(file_name);
-        %disp(str_data)
         if nargout>1
             [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name);
         else
@@ -269,18 +268,16 @@ end
 function [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name)
 
 %% Globals
-% Setting these to empty strings so they can be initialized and populated
-% properly if need be % A.D 
 hdr.details.globals.history = '';
 hdr.details.globals.ident = '';
 hdr.details.globals.minc_version = '';
 %list_globals = {str_data.GroupHierarchy.Groups.Attributes.Name}; % C.R.
     %made this change to the code below GroupHierachy-> Group
-list_globals = {str_data.Groups.Attributes.Name}; % Cell array containing the names of attributes from str_data 
+list_globals = {str_data.Groups.Attributes.Name}; 
 
-for num_global = 1:length(list_globals) % Iterate over each element in list_globals 
-    if strfind(list_globals{num_global},'history') % See if 'history' exists in the specific attribute name 
-        hdr.details.globals.history = str_data.Groups.Attributes(num_global).Value; % If true this assigns the attribute to that structure 
+for num_global = 1:length(list_globals) 
+    if strfind(list_globals{num_global},'history')
+        hdr.details.globals.history = str_data.Groups.Attributes(num_global).Value; 
     elseif strfind(list_globals{num_global},'ident') 
         hdr.details.globals.ident = str_data.Groups.Attributes(num_global).Value;
     elseif strfind(list_globals{num_global},'minc_version') 
@@ -296,24 +293,20 @@ end
 % yspace has a space after it. Need to find where/why it is doing this 
 
 tmp = h5readatt(file_name,'/minc-2.0/image/0/image','dimorder'); % specifically reading attribute name dimorder (should be xspace, zspace, yspace)
-% ^ This is the line where it is reading an extra space 
-ind = strfind(tmp,','); % Locate all commas in tmp, and store as array in ind
-nb_dims = length(ind)+1; % # of dimensions = # of commas found in dimorder + 1 
-curr_pos = 1; % Initialize starting positions 
-%ind = [ind length(tmp)+1]; % (not totally sure what this is doing) --> marks end of string tmp and makes sure last segment is stored in loop
-% ^ This should be reading last line as 21 but its reading 22
+ind = strfind(tmp,','); 
+nb_dims = length(ind)+1; 
+curr_pos = 1; 
+%ind = [ind length(tmp)+1]; % A.D--> made change as there was an additional
+%                            space added after yspace that was not needed 
 ind = [ind length(tmp)];
-for num_dim = 1:nb_dims % Iterate from 1 to # of dimensions 
-    hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1); % Storing names of the dimensions in the order they appear in dimorder 
-    disp(hdr.dimension_order{num_dim})
-    %curr_pos = ind(num_dim)+1; % Updates curr)pos to one just after the comma 
-    curr_pos = ind(num_dim);
-    %disp(curr_pos)
+for num_dim = 1:nb_dims 
+    hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1);
+    curr_pos = ind(num_dim)+1; 
 end
-% Reversing order of elements in hdr.dimensions_order (why yspace first) 
+ 
 hdr.dimension_order = hdr.dimension_order(end:-1:1); % Matlab/Octave invert dimension orders compared to HDF5 
-hdr.file_name = ''; % placeholder for file_name to be held in hdr struct 
-labels        = {str_data.Groups.Groups(:).Name}; % Creates a cell array called labels that contains names of all groups under str.data.groups...
+hdr.file_name = ''; 
+labels        = {str_data.Groups.Groups(:).Name}; 
 
 %% Read dimensions length
 tmp = h5info(file_name,'/minc-2.0/image/0/image/'); % Obtain info from this path and return strucure tmp containing the metadata
@@ -326,41 +319,40 @@ end
 %variables = h5info(file_name,'/minc-2.0/dimensions');
 %h5disp(file_name,'/minc-2.0/dimensions/xspace')
 
-mask_dim  = ismember(labels,'/minc-2.0/dimensions'); % Checks if any elements in labels matches whats in the path 
-list_dimensions = {str_data.Groups.Groups(mask_dim).Datasets(:).Name}; % Extracts names of datasets within the previous path defined 
-for num_d = 1:length(list_dimensions)  % Iterates over each element in list_dimensions 
-    %hdr.details.variables(num_d).name       =
-    %list_dimensions{num_d}(22:end); Extracts dimension name from
-    %list_dimensions{num_d} starting at 22 character onward 
+mask_dim  = ismember(labels,'/minc-2.0/dimensions'); 
+list_dimensions = {str_data.Groups.Groups(mask_dim).Datasets(:).Name};
+for num_d = 1:length(list_dimensions)  
+    %hdr.details.variables(num_d).name  =list_dimensions{num_d}(22:end); 
+    % ^ A.D--> made this change as Groups.Hierarchy no longer exists so
+    %           22:end no longer valid 
     hdr.details.variables(num_d).name        = list_dimensions{num_d}; % Assigning entire dataset name from list_dimensions{num_d} directly to structure 
     hdr.details.variables(num_d).attributes  = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Name};
     hdr.details.variables(num_d).values      = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Value};
 end
 
 %% Read Info
-mask_info  = ismember(labels,'/minc-2.0/info'); % Checks if any elements in labels matches whats in the path 
-nb_var = length(list_dimensions); % Sets number of variables to length of list_dimensions
-if ~isempty(str_data.Groups.Groups(mask_info).Datasets) % Checks if the 'info' group contains any datasets 
-    list_info = {str_data.Groups.Groups(mask_info).Datasets(:).Name}; % Extract names of datasets within path previously defined 
-    for num_d = 1:length(list_info) % Iterates over each element in list_info 
-        nb_var = nb_var+1; % Increments number of variables by 1 
-        %hdr.details.variables(nb_var).name        =
-        %list_info{num_d}(16:end); % I got rid of the 16:end part b/d
-        %probably different after getting rid of GroupsHierarchy 
+mask_info  = ismember(labels,'/minc-2.0/info'); 
+nb_var = length(list_dimensions); 
+if ~isempty(str_data.Groups.Groups(mask_info).Datasets)  
+    list_info = {str_data.Groups.Groups(mask_info).Datasets(:).Name};
+    for num_d = 1:length(list_info) 
+        nb_var = nb_var+1;  
+        %hdr.details.variables(nb_var).name =list_info{num_d}(16:end); 
+        % ^ A.D--? made this change as Groups.Hierarchy no longer exists so
+        %           16:end no longer valid 
         hdr.details.variables(nb_var).name        = list_info{num_d}; % Assigns full name of datasets in list_info to designated structure 
         hdr.details.variables(nb_var).attributes  = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name}; % Extracts names of attributes 
         hdr.details.variables(nb_var).values      = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
     end
 end
-%
-%% C.R. too be fixed
+%% 
 % %% Read image-min / image-max
 hdr.details.data.image_min = h5read(file_name,'/minc-2.0/image/0/image-min');
 hdr.details.data.image_max = h5read(file_name,'/minc-2.0/image/0/image-max');
 
 %% Read Image info
-mask_image  = ismember(labels,'/minc-2.0/image'); % Checks if any elements in labels matches whats in the path 
-list_image = {str_data.Groups.Groups(mask_image).Groups.Datasets(:).Name}; % Extracts names of all datasets within previously defined path 
+mask_image  = ismember(labels,'/minc-2.0/image'); 
+list_image = {str_data.Groups.Groups(mask_image).Groups.Datasets(:).Name}; h
 for num_d = 1:length(list_image) % Iterate over each element in list_image 
     %hdr.details.image(num_d).name        = list_image{num_d}(19:end);
     hdr.details.image(num_d).name        = list_image{num_d}; % Assign full dataset name from list_image{num_d}
