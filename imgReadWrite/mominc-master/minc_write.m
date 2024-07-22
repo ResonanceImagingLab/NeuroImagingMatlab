@@ -55,6 +55,42 @@ end
 
 function minc1_write(file_name, hdr, vol)
 
+    % Create netCDF file 
+    ncid = netcdf.create(file_name, 'CLOBBER'); % CLOBBER overwrite any existing file with same name 
+
+    % Create new dimension specified by ncid 
+    dimid = zeros(1, length(hdr.info.dimension_order));
+
+    for i = 1:length(hdr.info.dimension_order)
+        dim_name = hdr.info.dimension_order{i};
+        dim_size = hdr.info.dimensions(i);
+        dimid(i) = netcdf.defDim(ncid, dim_name, dim_size);
+    end 
+
+    % Define new variable and attributes 
+    varid = netcdf.defVar(ncid, 'image', 'NC_DOUBLE', dimid);
+    netcdf.putAtt(ncid, varid, 'valid_range', [hdr.details.data.image_min, hdr.details.data.image_max]);
+
+    % Define global attributes 
+    nglobalatt = length(hdr.details.globals);
+    for num_g = 1:nglobalatt
+        if strcmp(hdr.details.globals(num_g).name,'history')
+            % The history specified in hdr.info.history overrides what's stored in the header
+            netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.details.globals(num_g).name,hdr.info.history);         
+        else
+            netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.details.globals(num_g).name,hdr.details.globals(num_g).values);
+        end
+    end
+
+    % End definitions --> move into data mode 
+    netcdf.endDef(ncid);
+
+    % Write data 
+    netcdf.putVar(ncid, varid,vol);
+
+    % Close data
+    netcdf.close(ncid);
+
 end 
 
 

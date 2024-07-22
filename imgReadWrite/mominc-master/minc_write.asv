@@ -1,4 +1,4 @@
-function minc_write(file_name, hdr, vol)
+function [] = minc_write(file_name, hdr, vol)
 
     
     if ~ischar(file_name)
@@ -12,7 +12,6 @@ function minc_write(file_name, hdr, vol)
     end
 
 
-    
     % Deal with .mnc.gz files
     if strcmp(file_ext,'.gz')
         % This is a zipped file, unzip it in the temp folder and read it from there
@@ -55,6 +54,28 @@ function minc_write(file_name, hdr, vol)
 end 
 
 function minc1_write(file_name, hdr, vol)
+
+    % Create netCDF file 
+    ncid = netcdf.create(file_name, 'CLOBBER'); % CLOBBER overwrite any existing file with same name 
+
+    % Create new dimension specified by ncid 
+    dimid = zeros(1, length(hdr.info.dimension_order));
+
+    for i = 1:length(hdr.info.dimension_order)
+        dim_name = hdr.info.dimension_order{i};
+        dim_size = hdr.info.dimensions(i);
+        dimid(i) = netcdf.defDim(ncid, dim_name, dim_size);
+    end 
+
+    % Define new variable and attributes 
+    varid = netcdf.defVar(ncid, 'image', 'NC_DOUBLE', dimid);
+    netcdf.putAtt(ncid, varid, 'valid_range', [hdr.details.data.image_min, hdr.details.data.image_max]);
+
+    % Define global attributes 
+    globals = hdr.details.globals;
+    netcdf.putAtt(ncid, netcdf.getConstant('NC_GLOBAL'), 'history', )
+
+
 
 end 
 
