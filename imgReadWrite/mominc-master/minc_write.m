@@ -26,22 +26,22 @@ function [] = minc_write(file_name, hdr, vol)
         error('Need to provide hdr and vol info')
     end 
     
-    % Test if the file is in MINC1 or MINC2 format
-    fid = fopen(file_name, 'r');
-    if (fid < 0)
-        error('Cannot open file %.',file_name);
-    end
-    % Read the first 4 bytes to detect the format
-    f = fread(fid, [1 4], '*char'); 
-    if isequal(f(2:4), 'HDF')
-        hdr.type = 'minc2';
-    elseif isequal(f(1:3), 'CDF')
-        hdr.type = 'minc1';
-    else
-        error('Could not detect MINC version.');
-    end
-    % Close file
-    fclose(fid);
+    % % Test if the file is in MINC1 or MINC2 format
+    % fid = fopen(file_name, 'r');
+    % if (fid < 0)
+    %     error('Cannot open file %.',file_name);
+    % end
+    % % Read the first 4 bytes to detect the format
+    % f = fread(fid, [1 4], '*char'); 
+    % if isequal(f(2:4), 'HDF')
+    %     hdr.type = 'minc2';
+    % elseif isequal(f(1:3), 'CDF')
+    %     hdr.type = 'minc1';
+    % else
+    %     error('Could not detect MINC version.');
+    % end
+    % % Close file
+    % fclose(fid);
 
     % Apply minc_write function if file is minc1 or minc2 
     if strcmp(hdr.type, 'minc1')
@@ -103,24 +103,29 @@ function minc2_write(file_name, hdr, vol)
     h5write(file_name, '/minc-2.0/image/0/image', vol);
 
     % Write dimensions 
+    
     for i = 1:length(hdr.info.dimension_order)
         dim_name = hdr.info.dimension_order{i};
+        disp(dim_name)
         dim_size = hdr.info.dimensions(i);
-        h5create(file_name, ['/minc-2.0/dimensions/' dim_name], 1, 'Datatype', 'double');
+        disp(dim_size)
+        
+        h5create(file_name, ['/minc-2.0/dimensions/' dim_name], 1, 'Datatype', 'int32');
         h5write(file_name, ['/minc-2.0/dimensions/' dim_name], dim_size);
+
+        % Dimension Attributes 
+        %dim_attrs = hdr.details.variables.(dim_name);
+        % disp(dim_attrs)
+        % for attr_name = fieldnames(dim_attrs)
+        %     h5writeatt(file_name, ['/minc-2.0/dimensions/' dim_name], attr_name{1}, dim_attrs.(attr_name{1}) );
+        % end 
+       
     end 
-
     % Write global attributes
-    globals = hdr.details.globals;
-    h5writeatt(file_name, '/', 'history', globals.history);
-    h5writeatt(file_name, '/', 'ident', globals.ident);
-    h5writeatt(file_name, '/', 'minc_version', globals.minc_version);
-
-    % Create and Write image min and max
-    h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', class(hdr.details.data.image_min));
-    h5write(file_name, '/minc-2.0/image/0/image-min', hdr.details.data.image_min);
-    h5create(file_name, '/minc-2.0/image/0/image-max', size(hdr.details.data.image_max), 'Datatype', class(hdr.details.data.image_max));
-    h5write(file_name, '/minc-2.0/image/0/image-max', hdr.details.data.image_max);
+    %globals = hdr.details.globals;
+    h5writeatt(file_name, '/minc-2.0', 'ident', hdr.details.globals.ident);
+    h5writeatt(file_name, '/minc-2.0', 'minc_version', hdr.details.globals.minc_version);
+    h5writeatt(file_name, '/minc-2.0', 'history', hdr.details.globals.history);
 
     % Write image attributes
     image_attrs = hdr.details.image;
@@ -132,12 +137,43 @@ function minc2_write(file_name, hdr, vol)
         end
     end
 
+    % Write valid_range attribute
+    h5writeatt(file_name, '/minc-2.0/image/0/image', 'valid_range', [hdr.details.data.image_min, hdr.details.data.image_max]);
+
+    % Create and Write image min and max
+    h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', 'double');
+    h5write(file_name, '/minc-2.0/image/0/image-min', hdr.details.data.image_min);
+    h5create(file_name, '/minc-2.0/image/0/image-max', size(hdr.details.data.image_max), 'Datatype', 'double');
+    h5write(file_name, '/minc-2.0/image/0/image-max', hdr.details.data.image_max);
+
+    % Write info group and datasets 
+    info = hdr.details.info; 
+    for info_group = fieldnames(info)
+        info_group_name = info_group{1};
+        h5create(file_name, ['/minc-2.0/info' info_group_name], 1, 'Datatype', 'int32');
+        h5write(file_name, ['/minc-2.0/info' info_group_name], info.(info_group_name).size);
+
+        info_attrs = info.(info_group_name).attributes;
+        for attr_name = fieldnames(info_attrs)
+            h5writeatt(file_name, ['/minc-2.0/info' info_group_name], attr_name{1}, info_attrs.(attr_name{1}));
+        end 
+    end 
+
+
 
 end 
 
 
 
-
+    % % Dimension attributes 
+    % dim_attrs = hdr.details.variables;
+    % for i = 1:length(dim_attrs)
+    %     dimatt_name = dim_attrs(i).name;
+    %     dimatt_values = dim_attrs(i).values;
+    %     for j = 1:length(dimatt_values)
+    %         h5writeatt(file_name, '/minc-2.0/dimensions', dimatt_name, dimatt_values{j});
+    %     end 
+    % end 
 
 
 

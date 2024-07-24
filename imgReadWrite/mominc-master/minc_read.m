@@ -281,7 +281,7 @@ for num_global = 1:length(list_globals)
     elseif strfind(list_globals{num_global},'ident') 
         hdr.details.globals.ident = str_data.Groups.Attributes(num_global).Value;
     elseif strfind(list_globals{num_global},'minc_version') 
-        hdr.details.globals.ident = str_data.Groups.Attributes(num_global).Value;
+        hdr.details.globals.minc_version = str_data.Groups.Attributes(num_global).Value;
     end
 end
 
