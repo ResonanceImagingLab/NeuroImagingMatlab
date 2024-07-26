@@ -97,9 +97,9 @@ end
 function minc2_write(file_name, hdr, vol)
 
     % Test 
-    % file = 'hfa.mnc';
-    % [hdr, vol] = minc_read(file);
-    % file_name = 'hfa_test1.mnc';
+    file = 'hfa.mnc';
+    [hdr, vol] = minc_read(file);
+    file_name = 'hfa_test1.mnc';
 
     % Set up correct dimension order 
     hdr.info.dimension_order = {'xspace', 'yspace ', 'zspace'};
@@ -113,21 +113,13 @@ function minc2_write(file_name, hdr, vol)
         h5write(file_name, ['/minc-2.0/dimensions/' dim_name], dim_size);
 
         % Write dimension attributes 
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,1}, hdr.details.variables(i).values{1,1})
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,2}, hdr.details.variables(i).values{1,2});
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,3}, hdr.details.variables(i).values{1,3});
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,4}, hdr.details.variables(i).values{1,4});
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,5}, hdr.details.variables(i).values{1,5});
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,6}, hdr.details.variables(i).values{1,6});
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,7}, hdr.details.variables(i).values{1,7});
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,8}, hdr.details.variables(i).values{1,8});
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,9}, hdr.details.variables(i).values{1,9});
-        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,10}, hdr.details.variables(i).values{1,10});
+        for j = 1:length(hdr.details.variables(i).attributes)
+        h5writeatt(file_name,['/minc-2.0/dimensions/' dim_name] , hdr.details.variables(i).attributes{1,j}, hdr.details.variables(i).values{1,j})
+        end 
         
     end 
 
     % Write global attributes --> GOOD 
-    %globals = hdr.details.globals;
     h5writeatt(file_name, '/minc-2.0', 'ident', hdr.details.globals.ident);
     h5writeatt(file_name, '/minc-2.0', 'minc_version', hdr.details.globals.minc_version);
     h5writeatt(file_name, '/minc-2.0', 'history', hdr.details.globals.history);
@@ -138,34 +130,28 @@ function minc2_write(file_name, hdr, vol)
     h5write(file_name, '/minc-2.0/image/0/image', vol);
 
     % Write image attributes 
-    h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,1}, hdr.details.image(1).values{1,1});
-    h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,2}, hdr.details.image(1).values{1,2});
-    h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,3}, hdr.details.image(1).values{1,3});
-    h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,4}, hdr.details.image(1).values{1,4});
-    h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,5}, hdr.details.image(1).values{1,5});
-    h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,6}, hdr.details.image(1).values{1,6});
+    for i = 1:length(hdr.details.image(1).attributes)
 
-
-
+        h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,i}, hdr.details.image(1).values{1,i});
+    end 
     
     % Create and write image min
     h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', 'double');
     h5write(file_name, '/minc-2.0/image/0/image-min', hdr.details.data.image_min);
 
     % Write image min attributes 
-    h5writeatt(file_name, '/minc-2.0/image/0/image-min', hdr.details.image(2).attributes{1,1}, hdr.details.image(2).values{1,1});
-    h5writeatt(file_name, '/minc-2.0/image/0/image-min', hdr.details.image(2).attributes{1,2}, hdr.details.image(2).values{1,2});
-    h5writeatt(file_name, '/minc-2.0/image/0/image-min', hdr.details.image(2).attributes{1,3}, hdr.details.image(2).values{1,3});
-    
+    for i = 1:length(hdr.details.image(2).attributes)
+        h5writeatt(file_name, '/minc-2.0/image/0/image-min', hdr.details.image(2).attributes{1,i}, hdr.details.image(2).values{1,i});
+    end  
 
     % Create and write image max 
     h5create(file_name, '/minc-2.0/image/0/image-max', size(hdr.details.data.image_max), 'Datatype', 'double');
     h5write(file_name, '/minc-2.0/image/0/image-max', hdr.details.data.image_max); 
 
     % Write image max attributes 
-    h5writeatt(file_name, '/minc-2.0/image/0/image-max', hdr.details.image(3).attributes{1,1}, hdr.details.image(3).values{1,1});
-    h5writeatt(file_name, '/minc-2.0/image/0/image-max', hdr.details.image(3).attributes{1,2}, hdr.details.image(3).values{1,2});
-    h5writeatt(file_name, '/minc-2.0/image/0/image-max', hdr.details.image(3).attributes{1,3}, hdr.details.image(3).values{1,3});
+    for i = 1:length(hdr.details.image(3).attributes)
+        h5writeatt(file_name, '/minc-2.0/image/0/image-max', hdr.details.image(3).attributes{1,i}, hdr.details.image(3).values{1,i});
+    end
 
 
     % Create and write acquisition info 
