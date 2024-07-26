@@ -40,9 +40,9 @@ end
 function minc1_write(file_name, hdr, vol)
 
     % Test 
-    file = 'DeepStructureMask.mnc';
-    [hdr, vol] = minc_read(file);
-    file_name = 'DSM.mnc';
+    % file = 'DeepStructureMask.mnc';
+    % [hdr, vol] = minc_read(file);
+    % file_name = 'DSM.mnc';
 
     % Create netCDF file 
     ncid = netcdf.create(file_name, 'CLOBBER'); % CLOBBER overwrite any existing file with same name 
@@ -69,7 +69,7 @@ function minc1_write(file_name, hdr, vol)
 
 
     
-    for i = 1:length(hdr.details.variables)
+    for i = 1:length(hdr.details.variables)-1
         var_name = hdr.details.variables(i).name;
         varid = netcdf.defVar(ncid, var_name, 'NC_DOUBLE',[]);
 
@@ -79,17 +79,27 @@ function minc1_write(file_name, hdr, vol)
 
     end 
 
+    last_var = hdr.details.variables(end).name;
+    last_varid = netcdf.defVar(ncid, last_var, 'NC_DOUBLE', dimid);
+    for j = 1:length(hdr.details.variables(end).attributes)
+    netcdf.putAtt(ncid, last_varid, hdr.details.variables(end).attributes{j, 1}, hdr.details.variables(end).values{j, 1});
+    end
+
     % End definitions --> move into data mode 
     netcdf.endDef(ncid);
 
     % Write data for every variable
-    for i = 1:length(hdr.details.variables)
+    for i = 1:length(hdr.details.variables) -1
         var_name = hdr.details.variables(i).name;
         varid = netcdf.inqVarID(ncid, var_name);
 
         var_data = vol(i);
         netcdf.putVar(ncid, varid,var_data);
+        
     end
+
+    last_var_data = vol(end);
+    netcdf.putVar(ncid, varid,last_var_data);
 
     % Close data
     netcdf.close(ncid);
