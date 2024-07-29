@@ -297,7 +297,18 @@ curr_pos = 1;
 ind = [ind length(tmp)];
 for num_dim = 1:nb_dims 
     hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1);
-    curr_pos = ind(num_dim)+1; 
+    curr_pos = ind(num_dim)+1;
+end
+
+if isequal(ind, [7, 14, 20])
+    ind = strfind(tmp,','); 
+    nb_dims = length(ind)+1; 
+    curr_pos = 1;
+    ind = [ind length(tmp)+1];
+    for num_dim = 1:nb_dims 
+    hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1);
+    curr_pos = ind(num_dim)+1;
+    end
 end
  
 hdr.dimension_order = hdr.dimension_order(end:-1:1); % Matlab/Octave invert dimension orders compared to HDF5 
