@@ -40,15 +40,17 @@ end
 function minc1_write(file_name, hdr, vol)
 
     % Test 
-    % file = 'DeepStructureMask.mnc';
-    % [hdr, vol] = minc_read(file);
-    % file_name = 'DSM.mnc';
+    file = 'DeepStructureMask.mnc';
+    [hdr, vol] = minc_read(file);
+    file_name = 'DSM.mnc';
 
     % Create netCDF file 
     ncid = netcdf.create(file_name, 'CLOBBER'); % CLOBBER overwrite any existing file with same name 
 
     % Create new dimension specified by ncid 
     dimid = zeros(1, length(hdr.info.dimension_order));
+
+    hdr.info.dimension_order = hdr.info.dimension_order(end:-1:1);
 
     for i = 1:length(hdr.info.dimension_order)
         dim_name = hdr.info.dimension_order{i};
@@ -122,8 +124,15 @@ function minc2_write(file_name, hdr, vol)
     for i = 1:length(hdr.info.dimension_order)
         dim_name = hdr.info.dimension_order{i};
         dim_size = hdr.info.dimensions(i);
-        
-        h5create(file_name, ['/minc-2.0/dimensions/' dim_name], 1, 'Datatype', 'double');
+        if strcmp(hdr.details.variables(i).size, 'scalar')
+            dataset_size = 1;
+        else
+            dataset_size = 0; % Should this be an error message? 
+        end 
+
+        HDF5_dim_datatype = data_type(hdr.details.variables(i).type);
+
+        h5create(file_name, ['/minc-2.0/dimensions/' dim_name], dataset_size, 'Datatype', HDF5_dim_datatype);
         h5write(file_name, ['/minc-2.0/dimensions/' dim_name], dim_size);
 
         % Write dimension attributes 
@@ -138,9 +147,10 @@ function minc2_write(file_name, hdr, vol)
     h5writeatt(file_name, '/minc-2.0', 'minc_version', hdr.details.globals.minc_version);
     h5writeatt(file_name, '/minc-2.0', 'history', hdr.details.globals.history);
 
-
+    
     % Create and write image 
-    h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', 'double');
+    HDF5_img_datatype = data_type(hdr.details.image(1).type);
+    h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype);
     h5write(file_name, '/minc-2.0/image/0/image', vol);
 
     % Write image attributes 
@@ -150,7 +160,8 @@ function minc2_write(file_name, hdr, vol)
     end 
     
     % Create and write image min
-    h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', 'double');
+    HDF5_img_min_datatype = data_type(hdr.details.image(2).type);
+    h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', HDF5_img_min_datatype);
     h5write(file_name, '/minc-2.0/image/0/image-min', hdr.details.data.image_min);
 
     % Write image min attributes 
@@ -159,7 +170,8 @@ function minc2_write(file_name, hdr, vol)
     end  
 
     % Create and write image max 
-    h5create(file_name, '/minc-2.0/image/0/image-max', size(hdr.details.data.image_max), 'Datatype', 'double');
+    HDF5_img_max_datatype = data_type(hdr.details.image(3).type);
+    h5create(file_name, '/minc-2.0/image/0/image-max', size(hdr.details.data.image_max), 'Datatype', HDF5_img_max_datatype);
     h5write(file_name, '/minc-2.0/image/0/image-max', hdr.details.data.image_max); 
 
     % Write image max attributes 
@@ -171,8 +183,9 @@ function minc2_write(file_name, hdr, vol)
     for i = 4:length(hdr.details.variables)
 
         info_name = hdr.details.variables(i).name;
+        HDF5_info_datatype = data_type(hdr.details.variables(i).type);
 
-        h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', 'double');
+        h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype);
         h5write(file_name, ['/minc-2.0/info/' info_name], dim_size);
 
         % Write info attributes 
