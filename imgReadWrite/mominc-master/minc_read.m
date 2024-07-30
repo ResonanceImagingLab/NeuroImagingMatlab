@@ -145,12 +145,12 @@ else
 
     if strcmp(hdr.type,'minc1')
         ncid     = netcdf.open(file_name,'NOWRITE');
-        [nbdims,nvars,ngatts] = netcdf.inq(ncid);
+        [ndims,nvars,ngatts] = netcdf.inq(ncid);
         hdr.type = 'minc1';       
         if nargout>1
-            [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,nbdims,nvars,ngatts);
+            [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,ndims,nvars,ngatts);
         else
-            hdr = sub_read_matlab_minc1(hdr,ncid,nbdims,nvars,ngatts);
+            hdr = sub_read_matlab_minc1(hdr,ncid,ndims,nvars,ngatts);
         end
     else
         % str_data = hdf5info(file_name);
@@ -235,7 +235,7 @@ hdr.dimensions = zeros(1,ndims);
 for num_d = 1:ndims
     [hdr.dimension_order{num_d},hdr.dimensions(num_d)] = netcdf.inqDim(ncid,num_d-1);
 end
-hdr.dimension_order = hdr.dimension_order(end:-1:1); % in matlab, ordering of dimensions is reversed compared to NETCDF
+%hdr.dimension_order = hdr.dimension_order(end:-1:1); % in matlab, ordering of dimensions is reversed compared to NETCDF
 
 %% Read variables
 for num_v = 1:nvars
@@ -335,6 +335,8 @@ for num_d = 1:length(list_dimensions)
     hdr.details.variables(num_d).name        = list_dimensions{num_d}; % Assigning entire dataset name from list_dimensions{num_d} directly to structure 
     hdr.details.variables(num_d).attributes  = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Name};
     hdr.details.variables(num_d).values      = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Value};
+    hdr.details.variables(num_d).type        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Datatype.Type};
+    hdr.details.variables(num_d).size        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Dataspace.Type};
 end
 
 %% Read Info
@@ -350,8 +352,11 @@ if ~isempty(str_data.Groups.Groups(mask_info).Datasets)
         hdr.details.variables(nb_var).name        = list_info{num_d}; % Assigns full name of datasets in list_info to designated structure 
         hdr.details.variables(nb_var).attributes  = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name}; % Extracts names of attributes 
         hdr.details.variables(nb_var).values      = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
+        hdr.details.variables(nb_var).type        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Datatype.Type};
+        hdr.details.variables(nb_var).size        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Dataspace.Type};
     end
 end
+
 %% 
 % %% Read image-min / image-max
 hdr.details.data.image_min = h5read(file_name,'/minc-2.0/image/0/image-min');
@@ -367,6 +372,8 @@ for num_d = 1:length(list_image)
     hdr.details.image(num_d).name        = list_image{num_d}; 
     hdr.details.image(num_d).attributes  = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Name};
     hdr.details.image(num_d).values      = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Value};
+    hdr.details.image(num_d).type      = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Datatype.Type};
+    hdr.details.image(num_d).size        = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Dataspace.Type};
 end
 
 
