@@ -40,9 +40,9 @@ end
 function minc1_write(file_name, hdr, vol)
 
     % Test 
-    file = 'DeepStructureMask.mnc';
-    [hdr, vol] = minc_read(file);
-    file_name = 'DSM.mnc';
+    % file = 'DeepStructureMask.mnc';
+    % [hdr, vol] = minc_read(file);
+    % file_name = 'DSM.mnc';
 
     % Create netCDF file 
     ncid = netcdf.create(file_name, 'CLOBBER'); % CLOBBER overwrite any existing file with same name 
@@ -91,15 +91,15 @@ function minc1_write(file_name, hdr, vol)
     % End definitions --> move into data mode 
     netcdf.endDef(ncid);
 
-    % Write data for every variable
-    for i = 1:length(hdr.details.variables) -1
-        var_name = hdr.details.variables(i).name;
-        varid = netcdf.inqVarID(ncid, var_name);
-
-        var_data = vol(i);
-        netcdf.putVar(ncid, varid,var_data);
-        
-    end
+    % % Write data for every variable
+    % for i = 1:length(hdr.details.variables) -1
+    %     var_name = hdr.details.variables(i).name;
+    %     varid = netcdf.inqVarID(ncid, var_name);
+    % 
+    %     var_data = vol(i);
+    %     netcdf.putVar(ncid, varid,var_data);
+    % 
+    % end
 
     last_var_data = vol(end);
     netcdf.putVar(ncid, varid,last_var_data);
@@ -180,20 +180,25 @@ function minc2_write(file_name, hdr, vol)
     end
 
     % Create and write acquisition info 
-    for i = 4:length(hdr.details.variables)
-
-        info_name = hdr.details.variables(i).name;
-        HDF5_info_datatype = data_type(hdr.details.variables(i).type);
-
-        h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype);
-        h5write(file_name, ['/minc-2.0/info/' info_name], dim_size);
-
-        % Write info attributes 
-        for j = 1:length(hdr.details.variables(i).attributes)
-            h5writeatt(file_name, ['/minc-2.0/info/' info_name], hdr.details.variables(i).attributes{1,j}, hdr.details.variables(i).values{1,j});
+    if length(hdr.details.variables)<4 
+        h5create(file_name,"/minc-2.0/info/test ", 1);
+        h5write(file_name, "/minc-2.0/info/test " , dim_size);
+    else
+        for i = 4:length(hdr.details.variables)
+    
+            info_name = hdr.details.variables(i).name;
+            HDF5_info_datatype = data_type(hdr.details.variables(i).type);
+    
+            h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype);
+            h5write(file_name, ['/minc-2.0/info/' info_name], dim_size);
+    
+            % Write info attributes 
+            for j = 1:length(hdr.details.variables(i).attributes)
+                h5writeatt(file_name, ['/minc-2.0/info/' info_name], hdr.details.variables(i).attributes{1,j}, hdr.details.variables(i).values{1,j});
+            end
+    
+    
         end
-
-
     end
 
 
