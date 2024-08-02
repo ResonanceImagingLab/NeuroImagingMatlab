@@ -82,3 +82,16 @@ if nargout > 1
     vol = netcdf.getVar(ncid,find(ismember(var_names,'image'))-1);
 end
 netcdf.close(ncid);
+
+
+
+
+
+
+
+
+
+
+
+
+

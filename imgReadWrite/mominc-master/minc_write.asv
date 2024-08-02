@@ -60,15 +60,17 @@ function minc1_write(file_name, hdr, vol)
     end
 
     % Create new dimension specified by ncid 
+    %dimid = zeros(1, length(hdr.info.dimension_order));
+    % hdr.info.dimensions = permute(hdr.info.dimensions,[3,2,1]);
+    % hdr.info.dimensions = size(hdr,info.dimensions);
     ndim = length(hdr.info.dimensions);
-    hdr.info.dimensions = flip(hdr.info.dimensions,2);
     dimid = zeros(1, ndim);
     
 
     for i = ndim:-1:1
         dim_name = hdr.info.dimension_order{i};
         disp(dim_name);
-        dim_size = hdr.info.dimensions(flip(i, 2));
+        dim_size = permute(hdr.info.dimensions(i),[2);
         disp(dim_size);
         dimid(i) = netcdf.defDim(ncid, dim_name, dim_size);
         disp(dimid);
@@ -98,6 +100,9 @@ function minc1_write(file_name, hdr, vol)
         end
 
     end 
+
+    
+    %vol = flip(size(vol),2);
 
     % End definitions --> move into data mode 
     netcdf.endDef(ncid);
@@ -245,6 +250,15 @@ end
 
 
 
+    % % Write data for every variable
+    % for i = 1:length(hdr.details.variables) -1
+    %     var_name = hdr.details.variables(i).name;
+    %     varid = netcdf.inqVarID(ncid, var_name);
+    % 
+    %     var_data = vol(i);
+    %     netcdf.putVar(ncid, varid,var_data);
+    % 
+    % end
 
 
 

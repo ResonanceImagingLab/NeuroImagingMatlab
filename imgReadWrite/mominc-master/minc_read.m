@@ -337,6 +337,8 @@ for num_d = 1:length(list_dimensions)
     hdr.details.variables(num_d).values      = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Value};
     hdr.details.variables(num_d).type        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Datatype.Type};
     hdr.details.variables(num_d).size        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Dataspace.Type};
+    %hdr.details.variables(num_d).chunksize   = {str_data.Groups.Groups(mask_dim).Datasets(num_d).ChunkSize};
+    %hdr.details.variables(num_d).filters     = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Filters};
 end
 
 %% Read Info
@@ -349,11 +351,17 @@ if ~isempty(str_data.Groups.Groups(mask_info).Datasets)
         %hdr.details.variables(nb_var).name =list_info{num_d}(16:end); 
         % ^ A.D--? made this change as Groups.Hierarchy no longer exists so
         %           16:end no longer valid 
-        hdr.details.variables(nb_var).name        = list_info{num_d}; % Assigns full name of datasets in list_info to designated structure 
-        hdr.details.variables(nb_var).attributes  = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name}; % Extracts names of attributes 
-        hdr.details.variables(nb_var).values      = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
-        hdr.details.variables(nb_var).type        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Datatype.Type};
-        hdr.details.variables(nb_var).size        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Dataspace.Type};
+        % hdr.details.variables(nb_var).name        = list_info{num_d}; % Assigns full name of datasets in list_info to designated structure
+
+        if ~isempty(str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes)
+            hdr.details.variables(nb_var).name        = list_info{num_d};
+            hdr.details.variables(nb_var).attributes  = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name}; % Extracts names of attributes 
+            hdr.details.variables(nb_var).values      = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
+            hdr.details.variables(nb_var).type        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Datatype.Type};
+            hdr.details.variables(nb_var).size        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Dataspace.Type};
+            %hdr.details.variables(nb_var).chunksize   = {str_data.Groups.Groups(mask_info).Datasets(num_d).ChunkSize};
+            %hdr.details.variables(nb_var).filters     = {str_data.Groups.Groups(mask_info).Datasets(num_d).Filters};
+        end       
     end
 end
 
@@ -372,8 +380,10 @@ for num_d = 1:length(list_image)
     hdr.details.image(num_d).name        = list_image{num_d}; 
     hdr.details.image(num_d).attributes  = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Name};
     hdr.details.image(num_d).values      = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Value};
-    hdr.details.image(num_d).type      = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Datatype.Type};
+    hdr.details.image(num_d).type        = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Datatype.Type};
     hdr.details.image(num_d).size        = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Dataspace.Type};
+    %hdr.details.image(num_d).chunksize   = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).ChunkSize};
+    %hdr.details.image(num_d).filters     = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Filters};
 end
 
 
