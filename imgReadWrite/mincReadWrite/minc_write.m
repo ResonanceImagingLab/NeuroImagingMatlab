@@ -1,7 +1,10 @@
-function [] = minc_write(file_name, hdr, vol)
+function minc_write(file_name, hdr, vol)
 
-    
-    if ~ischar(file_name)
+    if nargin<2
+        error('Need to provide hdr and vol info')
+    end 
+
+    if ~ischar(file_name) && ~isstring(file_name)
         error('FILE_NAME should be a string, for example ''my_file.mnc'' or ''my_file.mnc.gz''')
     end
     
@@ -11,7 +14,7 @@ function [] = minc_write(file_name, hdr, vol)
         error('The extension of the file should be either .mnc or .mnc.gz')
     end
 
-
+    %% C.R. Amie to do - this was copied from read function, but its reverse... need to gzip after writing.
     % Deal with .mnc.gz files
     if strcmp(file_ext,'.gz')
         % This is a zipped file, unzip it in the temp folder and read it from there
@@ -21,12 +24,7 @@ function [] = minc_write(file_name, hdr, vol)
         rmdir(path_tmp,'s')
         return
     end
-
-    if nargin<2
-        error('Need to provide hdr and vol info')
-    end 
     
-
     % Apply minc_write function if file is minc1 or minc2 
     if strcmp(hdr.type, 'minc1')
         minc1_write(file_name,hdr,vol)
@@ -144,7 +142,7 @@ function minc2_write(file_name, hdr, vol)
             HDF5_dim_datatype = data_type(hdr.details.variables(i).type);
 
             h5create(file_name, ['/minc-2.0/dimensions/' dim_name], dataset_size, 'Datatype', HDF5_dim_datatype);
-            h5write(file_name, ['/minc-2.0/dimensions/' dim_name], dim_size);
+            h5write(file_name, ['/minc-2.0/dimensions/' dim_name], int32(dim_size)); %% C.R. added conversion to int32 to remove warnings. But this only works if you always have int32, it should be based on HDF5_dim_datatype
         %end 
 
         % Write dimension attributes 
@@ -168,9 +166,9 @@ function minc2_write(file_name, hdr, vol)
     %     h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype, 'ChunkSize', img_chunkSize, 'Deflate', img_filters);
     %     h5write(file_name, '/minc-2.0/image/0/image', vol);
     % else 
-        HDF5_img_datatype = data_type(hdr.details.image(1).type);
+        HDF5_img_datatype = data_type(hdr.details.image(1).type); % C.R. if you are going to make this flexible, then you need to use it to convert the filetype below!
         h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype);
-        h5write(file_name, '/minc-2.0/image/0/image', vol);
+        h5write(file_name, '/minc-2.0/image/0/image', vol); % C.R. convert vol to dataType.
     %end 
 
 
@@ -186,7 +184,7 @@ function minc2_write(file_name, hdr, vol)
     %img_min_chunksize = hdr.details.image(2).chunksize{1,1};
     %img_min_filters = hdr.details.image(2).filters{1,1}.Data;
     h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', HDF5_img_min_datatype);
-    h5write(file_name, '/minc-2.0/image/0/image-min', hdr.details.data.image_min);
+    h5write(file_name, '/minc-2.0/image/0/image-min', hdr.details.data.image_min); % C.R. add conversion code here
 
     % Write image min attributes 
     for i = 1:length(hdr.details.image(2).attributes)
@@ -198,7 +196,7 @@ function minc2_write(file_name, hdr, vol)
     %img_max_chunksize = hdr.details.image(3).chunksize{1,1};
     %img_max_filters = hdr.details.image(3).filters{1,1}.Data; 
     h5create(file_name, '/minc-2.0/image/0/image-max', size(hdr.details.data.image_max), 'Datatype', HDF5_img_max_datatype);
-    h5write(file_name, '/minc-2.0/image/0/image-max', hdr.details.data.image_max); 
+    h5write(file_name, '/minc-2.0/image/0/image-max', hdr.details.data.image_max);  % C.R. add conversion code here
 
     % Write image max attributes 
     for i = 1:length(hdr.details.image(3).attributes)
@@ -211,7 +209,9 @@ function minc2_write(file_name, hdr, vol)
         h5write(file_name, "/minc-2.0/info/   " , dim_size);
     else
         for i = 4:length(hdr.details.variables)
+
             info_name = hdr.details.variables(i).name;
+
             % if ~isempty(hdr.details.variables(i).chunksize{1,1}) && ~isempty(hdr.details.variables(i).filters{1,1})        
             %     HDF5_info_datatype = data_type(hdr.details.variables(i).type);
             %     info_chunksize = hdr.details.variables(i).chunksize{1,1};
@@ -220,19 +220,22 @@ function minc2_write(file_name, hdr, vol)
             %     h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype, 'ChunkSize', info_chunksize, 'Deflate', info_filters);
             %     h5write(file_name, ['/minc-2.0/info/' info_name], dim_size);
             % else 
-                HDF5_info_datatype = data_type(hdr.details.variables(i).type);
-        
-                h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype);
-                h5write(file_name, ['/minc-2.0/info/' info_name], dim_size);
-            %end 
+                if ~startsWith(info_name, 'dicom') % C.R. amie, I would remove this from the read function too
+                    HDF5_info_datatype = data_type(hdr.details.variables(i).type);
+            
+                    h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype);
+                    h5write(file_name, ['/minc-2.0/info/' info_name], dim_size);  % C.R. add conversion code here
+
     
-            % Write info attributes 
-            for j = 1:length(hdr.details.variables(i).attributes)
-                h5writeatt(file_name, ['/minc-2.0/info/' info_name], hdr.details.variables(i).attributes{1,j}, hdr.details.variables(i).values{1,j});
-            end
+                    % Write info attributes 
+                    for j = 1:length(hdr.details.variables(i).attributes)
+                        h5writeatt(file_name, ['/minc-2.0/info/' info_name], hdr.details.variables(i).attributes{1,j}, hdr.details.variables(i).values{1,j});
+                    end
     
-    
+                end
+
         end
+
     end
 
 

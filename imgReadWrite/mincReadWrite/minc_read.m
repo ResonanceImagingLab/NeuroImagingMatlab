@@ -101,7 +101,7 @@ function [hdr,vol] = minc_read(file_name)
 % THE SOFTWARE.
 
 % Test if the file name is a string
-if ~ischar(file_name)
+if ~ischar(file_name) && ~isstring(file_name)
     error('FILE_NAME should be a string, for example ''my_file.mnc'' or ''my_file.mnc.gz''')
 end
 
