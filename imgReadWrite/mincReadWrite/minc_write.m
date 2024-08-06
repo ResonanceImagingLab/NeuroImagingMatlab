@@ -16,21 +16,45 @@ function minc_write(file_name, hdr, vol)
 
     %% C.R. Amie to do - this was copied from read function, but its reverse... need to gzip after writing.
     % Deal with .mnc.gz files
-    if strcmp(file_ext,'.gz')
-        % This is a zipped file, unzip it in the temp folder and read it from there
-        path_tmp = tempname;
-        file_tmp = gunzip(file_name,path_tmp);
-        [hdr,vol] = minc_read(file_tmp{1});
-        rmdir(path_tmp,'s')
-        return
-    end
+    % if strcmp(file_ext,'.gz')
+    %     % This is a zipped file, unzip it in the temp folder and read it from there
+    %     path_tmp = tempname;
+    %     file_tmp = gunzip(file_name,path_tmp);
+    %     [hdr,vol] = minc_read(file_tmp{1});
+    %     rmdir(path_tmp,'s')
+    %     return
+    % end
+    % 
+    % % Apply minc_write function if file is minc1 or minc2 
+
+    % If file extensip is .mnc.gz, this will create a zipped and unzipped
+    % file (not sure why it is making both--> I dont see this as being bad) 
+     if strcmp(file_ext, '.gz')
+        mnc_file = fullfile(file_path, file_core);
+         if strcmp(hdr.type, 'minc1')
+            minc1_write(mnc_file,hdr,vol)
+         elseif strcmp(hdr.type, 'minc2')
+            minc2_write(mnc_file,hdr,vol);
+         end
+         gzip(mnc_file, file_path)
+         delete(mnc_file); % deleted original .mnc and just leaves .mnc.gz
+         return
+     else
+         if strcmp(hdr.type, 'minc1')
+            minc1_write(file_name,hdr,vol)
+         elseif strcmp(hdr.type, 'minc2')
+            minc2_write(file_name,hdr,vol);
+         end 
+     end 
+      
+ 
+
+    % if strcmp(hdr.type, 'minc1')
+    %     minc1_write(file_name,hdr,vol)
+    % elseif strcmp(hdr.type, 'minc2')
+    %     minc2_write(file_name,hdr,vol);
+    % end 
     
-    % Apply minc_write function if file is minc1 or minc2 
-    if strcmp(hdr.type, 'minc1')
-        minc1_write(file_name,hdr,vol)
-    elseif strcmp(hdr.type, 'minc2')
-        minc2_write(file_name,hdr,vol);
-    end 
 
 
 end 
@@ -127,23 +151,24 @@ function minc2_write(file_name, hdr, vol)
         if strcmp(hdr.details.variables(i).size, 'scalar')
             dataset_size = 1;
         else
-            dataset_size = 0; % Should this be an error message? 
+            %dataset_size = 0; % Should this be an error message? 
+            error('Unrecognized dimensions size: %s', hdr.details.variables(i).size);
         end 
 
-        % if ~isempty(hdr.details.variables(i).chunksize{1,1}) && ~isempty(hdr.details.variables(i).filters{1,1})
-        %     HDF5_dim_datatype = data_type(hdr.details.variables(i).type);
-        %     dim_chunksize = hdr.details.variables(i).chunksize{1,1};
-        %     dim_filters   = hdr.details.variables(i).filters{1,1};
-        % 
-        %     h5create(file_name, ['/minc-2.0/dimensions/' dim_name], dataset_size, 'Datatype', HDF5_dim_datatype, 'ChunkSize', dim_chunksize, 'Deflate', dim_filters);
-        %     h5write(file_name, ['/minc-2.0/dimensions/' dim_name], dim_size);
-        % 
-        % else 
+        if ~isempty(hdr.details.variables(i).chunksize{1,1}) && ~isempty(hdr.details.variables(i).filters{1,1})
+            HDF5_dim_datatype = data_type(hdr.details.variables(i).type);
+            dim_chunksize = hdr.details.variables(i).chunksize{1,1};
+            dim_filters   = hdr.details.variables(i).filters{1,1};
+
+            h5create(file_name, ['/minc-2.0/dimensions/' dim_name], dataset_size, 'Datatype', HDF5_dim_datatype, 'ChunkSize', dim_chunksize, 'Deflate', dim_filters);
+            h5write(file_name, ['/minc-2.0/dimensions/' dim_name], cast(dim_size, HDF5_dim_datatype));
+
+        else 
             HDF5_dim_datatype = data_type(hdr.details.variables(i).type);
 
             h5create(file_name, ['/minc-2.0/dimensions/' dim_name], dataset_size, 'Datatype', HDF5_dim_datatype);
             h5write(file_name, ['/minc-2.0/dimensions/' dim_name], cast(dim_size, HDF5_dim_datatype)); % Datatype conversion fixed 
-        %end 
+        end 
 
         % Write dimension attributes 
         for j = 1:length(hdr.details.variables(i).attributes)
@@ -159,17 +184,17 @@ function minc2_write(file_name, hdr, vol)
 
     
     % Create and write image 
-    % if ~isempty(hdr.details.image(1).chunksize{1,1}) && ~isempty(hdr.details.image(1).filters{1,1}.Data)
-    %     HDF5_img_datatype = data_type(hdr.details.image(1).type);
-    %     img_chunkSize = (hdr.details.image(1).chunksize{1,1});
-    %     img_filters = hdr.details.image(1).filters{1,1}.Data;
-    %     h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype, 'ChunkSize', img_chunkSize, 'Deflate', img_filters);
-    %     h5write(file_name, '/minc-2.0/image/0/image', vol);
-    % else 
+    if ~isempty(hdr.details.image(1).chunksize{1,1}) && ~isempty(hdr.details.image(1).filters{1,1}.Data)
+        HDF5_img_datatype = data_type(hdr.details.image(1).type);
+        img_chunkSize = (hdr.details.image(1).chunksize{1,1});
+        img_filters = hdr.details.image(1).filters{1,1}.Data;
+        h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype, 'ChunkSize', img_chunkSize, 'Deflate', img_filters);
+        h5write(file_name, '/minc-2.0/image/0/image', cast(vol, HDF5_img_datatype));
+    else 
         HDF5_img_datatype = data_type(hdr.details.image(1).type); 
         h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype);
         h5write(file_name, '/minc-2.0/image/0/image', cast(vol, HDF5_img_datatype)); % Datatype conversion fixed
-    %end 
+    end 
 
 
     % Write image attributes 
@@ -181,9 +206,9 @@ function minc2_write(file_name, hdr, vol)
     % Create and write image min
     
     HDF5_img_min_datatype = data_type(hdr.details.image(2).type);
-    %img_min_chunksize = hdr.details.image(2).chunksize{1,1};
+    img_min_chunksize = hdr.details.image(2).chunksize{1,1};
     %img_min_filters = hdr.details.image(2).filters{1,1}.Data;
-    h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', HDF5_img_min_datatype);
+    h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', HDF5_img_min_datatype, 'ChunkSize', img_min_chunksize);
     h5write(file_name, '/minc-2.0/image/0/image-min', cast(hdr.details.data.image_min, HDF5_img_min_datatype)); % Datatype conversion fixed 
 
     % Write image min attributes 
@@ -212,14 +237,14 @@ function minc2_write(file_name, hdr, vol)
 
             info_name = hdr.details.variables(i).name;
 
-            % if ~isempty(hdr.details.variables(i).chunksize{1,1}) && ~isempty(hdr.details.variables(i).filters{1,1})        
-            %     HDF5_info_datatype = data_type(hdr.details.variables(i).type);
-            %     info_chunksize = hdr.details.variables(i).chunksize{1,1};
-            %     info_filters = hdr.details.variables(i).filters{1,1};
-            % 
-            %     h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype, 'ChunkSize', info_chunksize, 'Deflate', info_filters);
-            %     h5write(file_name, ['/minc-2.0/info/' info_name], dim_size);
-            % else 
+            if ~isempty(hdr.details.variables(i).chunksize{1,1}) && ~isempty(hdr.details.variables(i).filters{1,1})        
+                HDF5_info_datatype = data_type(hdr.details.variables(i).type);
+                info_chunksize = hdr.details.variables(i).chunksize{1,1};
+                info_filters = hdr.details.variables(i).filters{1,1};
+
+                h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype, 'ChunkSize', info_chunksize, 'Deflate', info_filters);
+                h5write(file_name, ['/minc-2.0/info/' info_name], cast(dim_size, HDF5_info_datatype));
+            else 
                 if ~startsWith(info_name, 'dicom') % C.R. amie, I would remove this from the read function too --> I think I fixed this 
                     HDF5_info_datatype = data_type(hdr.details.variables(i).type);
             
@@ -233,7 +258,7 @@ function minc2_write(file_name, hdr, vol)
                     end
     
                 end
-
+            end
         end
 
     end
