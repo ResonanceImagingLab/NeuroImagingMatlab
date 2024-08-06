@@ -166,7 +166,7 @@ function minc2_write(file_name, hdr, vol)
     %     h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype, 'ChunkSize', img_chunkSize, 'Deflate', img_filters);
     %     h5write(file_name, '/minc-2.0/image/0/image', vol);
     % else 
-        HDF5_img_datatype = data_type(hdr.details.image(1).type); 
+        HDF5_img_datatype = data_type(hdr.details.image(1).type); % C.R. if you are going to make this flexible, then you need to use it to convert the filetype below!
         h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype);
         h5write(file_name, '/minc-2.0/image/0/image', cast(vol, HDF5_img_datatype)); % Datatype conversion fixed
     %end 
