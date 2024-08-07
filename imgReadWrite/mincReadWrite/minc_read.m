@@ -339,6 +339,7 @@ for num_d = 1:length(list_dimensions)
     hdr.details.variables(num_d).size        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Dataspace.Type};
     hdr.details.variables(num_d).chunksize   = {str_data.Groups.Groups(mask_dim).Datasets(num_d).ChunkSize};
     hdr.details.variables(num_d).filters     = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Filters};
+    hdr.details.variables(num_d).fillValue   = {str_data.Groups.Groups(mask_dim).Datasets(num_d).FillValue};
 end
 
 %% Read Info
@@ -363,6 +364,7 @@ if ~isempty(str_data.Groups.Groups(mask_info).Datasets)
                 hdr.details.variables(nb_var).size        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Dataspace.Type};
                 hdr.details.variables(nb_var).chunksize   = {str_data.Groups.Groups(mask_info).Datasets(num_d).ChunkSize};
                 hdr.details.variables(nb_var).filters     = {str_data.Groups.Groups(mask_info).Datasets(num_d).Filters};
+                hdr.details.variables(nb_var).fillValue   = {str_data.Groups.Groups(mask_info).Datasets(num_d).FillValue};
             end       
         end
     end
@@ -387,6 +389,7 @@ for num_d = 1:length(list_image)
     hdr.details.image(num_d).size        = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Dataspace.Type};
     hdr.details.image(num_d).chunksize   = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).ChunkSize};
     hdr.details.image(num_d).filters     = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Filters};
+    hdr.details.image(num_d).fillValue   = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).FillValue};
 end
 
 

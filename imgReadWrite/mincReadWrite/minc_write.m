@@ -159,8 +159,9 @@ function minc2_write(file_name, hdr, vol)
             HDF5_dim_datatype = data_type(hdr.details.variables(i).type);
             dim_chunksize = hdr.details.variables(i).chunksize{1,1};
             dim_filters   = hdr.details.variables(i).filters{1,1};
+            dim_fillValue = hdr.details.variables(i).fillValue{1,1};
 
-            h5create(file_name, ['/minc-2.0/dimensions/' dim_name], dataset_size, 'Datatype', HDF5_dim_datatype, 'ChunkSize', dim_chunksize, 'Deflate', dim_filters);
+            h5create(file_name, ['/minc-2.0/dimensions/' dim_name], dataset_size, 'Datatype', HDF5_dim_datatype, 'ChunkSize', dim_chunksize, 'Deflate', dim_filters, 'Fillvalue', dim_fillValue);
             h5write(file_name, ['/minc-2.0/dimensions/' dim_name], cast(dim_size, HDF5_dim_datatype));
 
         else 
@@ -186,9 +187,11 @@ function minc2_write(file_name, hdr, vol)
     % Create and write image 
     if ~isempty(hdr.details.image(1).chunksize{1,1}) && ~isempty(hdr.details.image(1).filters{1,1}.Data)
         HDF5_img_datatype = data_type(hdr.details.image(1).type);
+        %HDF5_img_datatype = 'double';
         img_chunkSize = (hdr.details.image(1).chunksize{1,1});
         img_filters = hdr.details.image(1).filters{1,1}.Data;
-        h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype, 'ChunkSize', img_chunkSize, 'Deflate', img_filters);
+        img_fillValue = hdr.details.image(1).fillValue{1,1};
+        h5create(file_name, '/minc-2.0/image/0/image', size(vol), 'Datatype', HDF5_img_datatype, 'ChunkSize', img_chunkSize, 'Deflate', img_filters, 'Fillvalue', img_fillValue);
         h5write(file_name, '/minc-2.0/image/0/image', cast(vol, HDF5_img_datatype));
     else 
         HDF5_img_datatype = data_type(hdr.details.image(1).type); 
@@ -204,12 +207,18 @@ function minc2_write(file_name, hdr, vol)
     end 
     
     % Create and write image min
-    
-    HDF5_img_min_datatype = data_type(hdr.details.image(2).type);
-    img_min_chunksize = hdr.details.image(2).chunksize{1,1};
-    %img_min_filters = hdr.details.image(2).filters{1,1}.Data;
-    h5create(file_name, '/minc-2.0/image/0/image-min', size(hdr.details.data.image_min), 'Datatype', HDF5_img_min_datatype, 'ChunkSize', img_min_chunksize);
-    h5write(file_name, '/minc-2.0/image/0/image-min', cast(hdr.details.data.image_min, HDF5_img_min_datatype)); % Datatype conversion fixed 
+    if ~isempty(hdr.details.variables(i).chunksize{1,1}) && ~isempty(hdr.details.variables(i).filters{1,1}) 
+        HDF5_img_min_datatype = data_type(hdr.details.image(2).type);
+        img_min_chunksize = hdr.details.image(2).chunksize{1,1};
+        img_min_filters = hdr.details.image(2).filters{1,1}.Data;
+        img_min_fillValue = hdr.details.image(2).fillValue{1,1};
+        h5create(file_name, '/minc-2.0/image/0/image-min', length(hdr.details.data.image_min), 'Datatype', HDF5_img_min_datatype, 'ChunkSize', img_min_chunksize, 'Deflate', img_min_filters, 'Fillvalue', img_min_fillValue);
+        h5write(file_name, '/minc-2.0/image/0/image-min', cast(hdr.details.data.image_min, HDF5_img_min_datatype)); % Datatype conversion fixed 
+    else 
+        HDF5_img_min_datatype = data_type(hdr.details.image(2).type);
+        h5create(file_name, '/minc-2.0/image/0/image-min', length(hdr.details.data.image_min), 'Datatype', HDF5_img_min_datatype);
+        h5write(file_name, '/minc-2.0/image/0/image-min', cast(hdr.details.data.image_min, HDF5_img_min_datatype)); % Datatype conversion fixed 
+    end 
 
     % Write image min attributes 
     for i = 1:length(hdr.details.image(2).attributes)
@@ -217,11 +226,18 @@ function minc2_write(file_name, hdr, vol)
     end  
 
     % Create and write image max 
-    HDF5_img_max_datatype = data_type(hdr.details.image(3).type);
-    %img_max_chunksize = hdr.details.image(3).chunksize{1,1};
-    %img_max_filters = hdr.details.image(3).filters{1,1}.Data; 
-    h5create(file_name, '/minc-2.0/image/0/image-max', size(hdr.details.data.image_max), 'Datatype', HDF5_img_max_datatype);
-    h5write(file_name, '/minc-2.0/image/0/image-max', cast(hdr.details.data.image_max,HDF5_img_max_datatype));  % Datatype conversion fixed 
+    if ~isempty(hdr.details.variables(i).chunksize{1,1}) && ~isempty(hdr.details.variables(i).filters{1,1}) 
+        HDF5_img_max_datatype = data_type(hdr.details.image(3).type);
+        img_max_chunksize = hdr.details.image(3).chunksize{1,1};
+        img_max_filters = hdr.details.image(3).filters{1,1}.Data; 
+        img_max_fillValue = hdr.details.image(3).fillValue{1,1};
+        h5create(file_name, '/minc-2.0/image/0/image-max', length(hdr.details.data.image_max), 'Datatype', HDF5_img_max_datatype, 'ChunkSize', img_max_chunksize, 'Deflate', img_max_filters, 'Fillvalue', img_max_fillValue);
+        h5write(file_name, '/minc-2.0/image/0/image-max', cast(hdr.details.data.image_max,HDF5_img_max_datatype));  % Datatype conversion fixed 
+    else 
+        HDF5_img_max_datatype = data_type(hdr.details.image(3).type);
+        h5create(file_name, '/minc-2.0/image/0/image-max', length(hdr.details.data.image_max), 'Datatype', HDF5_img_max_datatype);
+        h5write(file_name, '/minc-2.0/image/0/image-max', cast(hdr.details.data.image_max,HDF5_img_max_datatype));  % Datatype conversion fixed
+    end 
 
     % Write image max attributes 
     for i = 1:length(hdr.details.image(3).attributes)
@@ -241,8 +257,9 @@ function minc2_write(file_name, hdr, vol)
                 HDF5_info_datatype = data_type(hdr.details.variables(i).type);
                 info_chunksize = hdr.details.variables(i).chunksize{1,1};
                 info_filters = hdr.details.variables(i).filters{1,1};
+                info_fillValue = hdr.details.variables(i).fillValue{1,1};
 
-                h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype, 'ChunkSize', info_chunksize, 'Deflate', info_filters);
+                h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype, 'ChunkSize', info_chunksize, 'Deflate', info_filters, 'Fillvalue', info_fillValue);
                 h5write(file_name, ['/minc-2.0/info/' info_name], cast(dim_size, HDF5_info_datatype));
             else 
                 if ~startsWith(info_name, 'dicom') % C.R. amie, I would remove this from the read function too --> I think I fixed this 
