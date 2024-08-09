@@ -346,17 +346,21 @@ end
 
 mask_info  = ismember(labels,'/minc-2.0/info'); 
 nb_var = length(list_dimensions); 
-if ~isempty(str_data.Groups.Groups(mask_info).Datasets)  
+
+if ~isempty(str_data.Groups.Groups(mask_info).Datasets) 
     list_info = {str_data.Groups.Groups(mask_info).Datasets(:).Name};
-    if ~startsWith(list_info, 'dicom') 
+    
+
         for num_d = 1:length(list_info) 
             nb_var = nb_var+1;  
+            %if ~startsWith(list_info{num_d}, 'dicom')
             %hdr.details.variables(nb_var).name =list_info{num_d}(16:end); 
             % ^ A.D--? made this change as Groups.Hierarchy no longer exists so
             %           16:end no longer valid 
             % hdr.details.variables(nb_var).name        = list_info{num_d}; % Assigns full name of datasets in list_info to designated structure
     
             if  ~isempty(str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes) 
+                
                 hdr.details.variables(nb_var).name        = list_info{num_d};
                 hdr.details.variables(nb_var).attributes  = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name}; % Extracts names of attributes 
                 hdr.details.variables(nb_var).values      = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
@@ -365,9 +369,11 @@ if ~isempty(str_data.Groups.Groups(mask_info).Datasets)
                 hdr.details.variables(nb_var).chunksize   = {str_data.Groups.Groups(mask_info).Datasets(num_d).ChunkSize};
                 hdr.details.variables(nb_var).filters     = {str_data.Groups.Groups(mask_info).Datasets(num_d).Filters};
                 hdr.details.variables(nb_var).fillValue   = {str_data.Groups.Groups(mask_info).Datasets(num_d).FillValue};
+                
             end       
+            %end
         end
-    end
+
 end
 
 %% 

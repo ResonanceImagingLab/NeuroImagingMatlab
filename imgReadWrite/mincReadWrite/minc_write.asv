@@ -230,15 +230,13 @@ function minc2_write(file_name, hdr, vol)
 
 
 
-    % Create the /minc-2.0/info group using H5G.create (low level function)
-    file_id = H5F.open(file_name, 'H5F_ACC_RDWR', 'H5P_DEFAULT');
-    group_id = H5G.create(file_id, '/minc-2.0/info', 'H5P_DEFAULT', 'H5P_DEFAULT', 'H5P_DEFAULT');
-    H5G.close(group_id);
-    H5F.close(file_id);
-
     % Create and write acquisition info 
     if length(hdr.details.variables)<4  
-
+        h5create(file_name,"/minc-2.0/info/  ", 1);
+        h5write(file_name, "/minc-2.0/info/  " , dim_size);
+        % fid = H5F.open(file_name);
+        % gid = H5G.create(fid, '/minc-2.0/info', 'double');
+        % H5G.close(gid);
     else
         for i = 4:length(hdr.details.variables)
 
