@@ -405,6 +405,7 @@ if nargout>1
     % vol = hdf5read(file_name,'/minc-2.0/image/0/image');
     vol = h5read(file_name,'/minc-2.0/image/0/image');
     vol = double(vol); % Convert everything to double to avoid problems, even if that's dirty
+
 end
 end 
 end 
