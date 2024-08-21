@@ -59,19 +59,10 @@ for num_d = 1:length(info_v.dimensions)
     dim_name = info_v.dimensions{num_d}; 
 
     if ~strcmp(dim_name,'time')
-        if strcmp(hdr.type,'minc1')
-            cosines_v(:,num_e) = minc_variable(hdr,dim_name,'direction_cosines');
-            start_v(num_e) = minc_variable(hdr,dim_name,'start');
-            step_v(num_e) = minc_variable(hdr,dim_name,'step');
-        else % Extraction of dimension details for MINC2 
             % A.D --> changes made to match new h5info 
-            %cosines_v(:,num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/direction_cosines']);
             cosines_v(:,num_e) = minc_variable(hdr,dim_name,'direction_cosines');
-            %start_v(num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/start']);
             start_v(num_e) = minc_variable(hdr,dim_name,'start');
-            %step_v(num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/step']); 
-            step_v(num_e) = minc_variable(hdr,dim_name,'step');
-        end        
+            step_v(num_e) = minc_variable(hdr,dim_name,'step');       
         num_e = num_e + 1;
     else        
         info_v.tr = minc_variable(hdr,'time','step');
