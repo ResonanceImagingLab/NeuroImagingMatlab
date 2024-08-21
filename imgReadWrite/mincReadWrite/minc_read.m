@@ -183,38 +183,152 @@ if strcmp(hdr.type,'minc1')
     end
 end
 
-% Normalize the data
+% Normalize the data (eps = 2.2204e-16)
+
+% if size(hdr.details.data.image_min,2)>1
+%     error('Normalization with more than one dimension is not supported')
+% end
+% if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max) % If either of these fields are empty, normalization is skipped 
+%     if (length(hdr.details.data.image_min)==1)&&(length(hdr.details.data.image_max)==1)&&((abs(min(vol(:))-hdr.details.data.image_min)>eps)||(abs(max(vol(:))-hdr.details.data.image_max)>eps))
+%         % Handles case where image_min and max are single vals 
+%         % If min and max of vol are different from Image_min and max by a
+%         % small threshold eps, normalization is performed 
+%         vol = ((vol-min(vol(:)))/(max(vol(:))-min(vol(:))))*(hdr.details.data.image_max-hdr.details.data.image_min)+hdr.details.data.image_min; % Scales values in vol to a range between image_min and max 
+% 
+%     elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&(length(hdr.details.data.image_min)==size(vol,ndims(vol))) %Runs this one
+%         % Handles case where image_min and max are arrays 
+%         % Checks if image_min and max lengths match size of vol along its
+%         % last dimension 
+%         switch ndims(vol)
+%             case 3 % 3D volume case 
+%                 min_vol = squeeze(min(min(vol))); % Calculates minimum value of the entire vol array (minimum intensity)
+%                 max_vol = squeeze(max(max(vol))); % Caclulates maximum value of the entire vol array (maximum intensity)
+%                 if any(abs(min_vol(:)-hdr.details.data.image_min(:))>eps)||any(abs(max_vol(:)-hdr.details.data.image_max(:))>eps) % Checks if any of min_vol or max_vol differ from image_min and image_max stored in the header by more than eps
+%                     % Normalizes each vol slice based on its own min_vol
+%                     % and max_vol vals and then scales these slices to
+%                     % match range defined by image_min and max per slice        
+%                     weights = reshape(repmat(max_vol'-min_vol',[size(vol,1)*size(vol,2) 1]),size(vol)); 
+%                     weights(weights==0) = 1;
+%                     vol = (vol - reshape(repmat(min_vol',[size(vol,1)*size(vol,2) 1]),size(vol)))./weights;
+%                     vol = vol.*(reshape(repmat(hdr.details.data.image_max(:)',[size(vol,1)*size(vol,2) 1]),size(vol))-reshape(repmat(hdr.details.data.image_min(:)', ...
+%                         [size(vol,1)*size(vol,2) 1]),size(vol)))+reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2) 1]),size(vol));
+%                 end
+%             case 4 % 4D volume case (includes time) 
+%                 % Calcs min and max intensity vals for each 3D sub-volume
+%                 % (along the 4th dimensions) 
+%                 min_vol = squeeze(min(min(min(vol)))); 
+%                 max_vol = squeeze(max(max(max(vol))));
+%                 if any(abs(min_vol(:)-hdr.details.data.image_min(:))>eps)||any(abs(max_vol(:)-hdr.details.data.image_max(:))>eps) % Checks if any sub-volume min/max vals differ from corresponding image_min and max vals by more than eps 
+%                     % Normalizes each 3D sub-vol of the 4D vol based on its
+%                     % own min_vol and max_vol values and then scales these
+%                     % sub vols to match range defined by image_min and max
+%                     weights = reshape(repmat(max_vol'-min_vol',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol));
+%                     weights(weights==0) = 1;
+%                     vol = (vol - reshape(repmat(min_vol',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol)))./weights;
+%                     vol = vol.*(reshape(repmat(hdr.details.data.image_max(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol))-reshape(repmat(hdr.details.data.image_min(:)', ...
+%                         [size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol)))+reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol));
+%                 end 
+%             otherwise
+%                 error('slice-based intensity normalization is not supported when the dimensionality of the array is not 3 or 4')
+%         end
+%     end 
+% end
+
+
+
 if size(hdr.details.data.image_min,2)>1
     error('Normalization with more than one dimension is not supported')
 end
+
 if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max)
-    if (length(hdr.details.data.image_min)==1)&&(length(hdr.details.data.image_max)==1)&&((abs(min(vol(:))-hdr.details.data.image_min)>eps)||(abs(max(vol(:))-hdr.details.data.image_max)>eps))
-        vol = ((vol-min(vol(:)))/(max(vol(:))-min(vol(:))))*(hdr.details.data.image_max-hdr.details.data.image_min)+hdr.details.data.image_min;
-    elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&(length(hdr.details.data.image_min)==size(vol,ndims(vol)))
+    
+    if (length(hdr.details.data.image_min)==1)&&(length(hdr.details.data.image_max)==1)&&...
+       ((abs(min(vol(:))-hdr.details.data.image_min)>eps)||(abs(max(vol(:))-hdr.details.data.image_max)>eps))
+
+        % Replace the image_min and image_max with data type min and max
+        dataType = data_type(hdr.details.image(1).type);
+        min_val = double(intmin(dataType));
+        max_val = double (intmax(dataType));
+        vol = ((vol - min(vol(:))) / (max(vol(:)) - min(vol(:)))) * (max_val - min_val) + min_val;
+
+    elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&...
+           (length(hdr.details.data.image_min)==size(vol,ndims(vol)))
+
+        dataType = data_type(hdr.details.image(1).type);
+        min_val = double(intmin(dataType));
+        max_val = double (intmax(dataType));
+    
         switch ndims(vol)
             case 3
                 min_vol = squeeze(min(min(vol)));
                 max_vol = squeeze(max(max(vol)));
-                if any(abs(min_vol(:)-hdr.details.data.image_min(:))>eps)||any(abs(max_vol(:)-hdr.details.data.image_max(:))>eps)
-                    weights = reshape(repmat(max_vol'-min_vol',[size(vol,1)*size(vol,2) 1]),size(vol));
-                    weights(weights==0) = 1;
-                    vol = (vol - reshape(repmat(min_vol',[size(vol,1)*size(vol,2) 1]),size(vol)))./weights;
-                    vol = vol.*(reshape(repmat(hdr.details.data.image_max(:)',[size(vol,1)*size(vol,2) 1]),size(vol))-reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2) 1]),size(vol)))+reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2) 1]),size(vol));
+                if any(abs(min_vol(:) - hdr.details.data.image_min(:)) > eps) || any(abs(max_vol(:) - hdr.details.data.image_max(:)) > eps)
+                    % weights = reshape(repmat(max_vol' - min_vol', [size(vol,1) * size(vol,2), 1]), size(vol));
+                    % weights(weights == 0) = 1;
+                    % vol = (vol - reshape(repmat(min_vol', [size(vol,1) * size(vol,2), 1]), size(vol))) ./ weights;
+                    % vol = vol .* (reshape(repmat(max_val', [size(vol,1) * size(vol,2), 1]), size(vol)) - ...
+                    %               reshape(repmat(min_val', [size(vol,1) * size(vol,2), 1]), size(vol)) + ...
+                    %               reshape(repmat(min_val', [size(vol,1) * size(vol,2), 1]), size(vol)));
+                    %  weights = max_vol - min_vol;
+                    % weights(weights == 0) = 1; % Avoid division by zero
+                    % 
+                    % % Normalize vol without using transpose
+                    % vol = (vol - min_vol) ./ weights;
+                    % 
+                    % % Apply data type range without reshaping
+                    % vol = vol * (max_val - min_val) + min_val;
+                    weights = max_vol - min_vol;
+                    weights(weights == 0) = 1; % Avoid division by zero
+            
+                    % Replicate min_vol and weights across the first two dimensions
+                    min_vol = reshape(min_vol, [1, 1, length(min_vol)]);  % 1x1x189
+                    weights = reshape(weights, [1, 1, length(weights)]);  % 1x1x189
+            
+                    % Broadcast across the first two dimensions (197x233x189)
+                    min_vol = repmat(min_vol, [size(vol, 1), size(vol, 2), 1]);
+                    weights = repmat(weights, [size(vol, 1), size(vol, 2), 1]);
+            
+                    % Normalize vol using broadcasting
+                    vol = (vol - min_vol) ./ weights;
+            
+                    % Apply data type range
+                    vol = vol * (max_val - min_val) + min_val;
                 end
+
             case 4
                 min_vol = squeeze(min(min(min(vol))));
                 max_vol = squeeze(max(max(max(vol))));
-                if any(abs(min_vol(:)-hdr.details.data.image_min(:))>eps)||any(abs(max_vol(:)-hdr.details.data.image_max(:))>eps)
-                    weights = reshape(repmat(max_vol'-min_vol',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol));
-                    weights(weights==0) = 1;
-                    vol = (vol - reshape(repmat(min_vol',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol)))./weights;
-                    vol = vol.*(reshape(repmat(hdr.details.data.image_max(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol))-reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol)))+reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol));
+                if any(abs(min_vol(:) - hdr.details.data.image_min(:)) > eps) || any(abs(max_vol(:) - hdr.details.data.image_max(:)) > eps)
+                    % weights = reshape(repmat(max_vol' - min_vol', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol));
+                    % weights(weights == 0) = 1;
+                    % vol = (vol - reshape(repmat(min_vol', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol))) ./ weights;
+                    % vol = vol .* (reshape(repmat(max_val', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol)) - ...
+                    %               reshape(repmat(min_val', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol))) + ...
+                    %               reshape(repmat(min_val', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol));
+                    weights = max_vol - min_vol;
+                    weights(weights == 0) = 1; % Avoid division by zero
+            
+                    % Replicate min_vol and weights across the first two dimensions
+                    min_vol = reshape(min_vol, [1, 1, 1, length(min_vol)]);  % 1x1x189
+                    weights = reshape(weights, [1, 1, 1, length(weights)]);  % 1x1x189
+            
+                    % Broadcast across the first two dimensions (197x233x189)
+                    min_vol = repmat(min_vol, [size(vol, 1), size(vol, 2), size(vol,3), 1]);
+                    weights = repmat(weights, [size(vol, 1), size(vol, 2), size(vol,3), 1]);
+            
+                    % Normalize vol using broadcasting
+                    vol = (vol - min_vol) ./ weights;
+            
+                    % Apply data type range
+                    vol = vol * (max_val - min_val) + min_val;
                 end 
+
             otherwise
                 error('slice-based intensity normalization is not supported when the dimensionality of the array is not 3 or 4')
         end
     end 
 end
+
 
 %%%%%%%%%%%%%%%%%%%%%%
 %% Matlab and MINC1 %%
