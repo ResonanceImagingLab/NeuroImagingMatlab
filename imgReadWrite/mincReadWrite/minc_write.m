@@ -1,4 +1,4 @@
-function minc_write(file_name, hdr, vol)
+ function minc_write(file_name, hdr, vol)
 
     if nargin<2
         error('Need to provide hdr and vol info')
@@ -22,7 +22,7 @@ function minc_write(file_name, hdr, vol)
          elseif strcmp(hdr.type, 'minc2')
             minc2_write(mnc_file,hdr,vol);
          end
-         gzip(mnc_file, file_path)
+         gzip(mnc_file, file_path)                                      
          delete(mnc_file); % deleted original .mnc and just leaves .mnc.gz
          return
      else
@@ -32,9 +32,9 @@ function minc_write(file_name, hdr, vol)
             minc2_write(file_name,hdr,vol);
          end 
      end 
+                                                                            
 
-
-end 
+end                                                     
 
 function minc1_write(file_name, hdr, vol)
 
@@ -114,16 +114,41 @@ end
 function minc2_write(file_name, hdr, vol)
 
     % Test 
-    % file = 'hfa.mnc';
+    % file = 'mni_icbm152_wm_tal_nlin_sym_09a.mnc';
     % [hdr, vol] = minc_read(file);
-    % file_name = 'hfa_test1.mnc';
+    % file_name = 'atlas_test.mnc';
 
     % If the file you are writing already exists...
-    if exist(file_name, 'file')
-        delete(file_name)
-    end 
+    if exist(file_name, 'file')                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+        delete(file_name)                                                                                                                                                                                                                                                                                                                 
+    end                                                                                                                                                                                                                      
+     
+    % if isfield(hdr.details.image(1), 'attributes') && isequal(hdr.details.image(1).attributes{1,3}, 'valid_range')
+    %     vol = normalize_vol(hdr, vol, hdr.details.image(1).attributes{1,3}, hdr.details.data.image_max, hdr.details.data.image_min, []);
+    % else 
+    %     vol = normalize_vol(hdr, vol, [], hdr.details.data.image_max, hdr.details.data.image_min, []);
+    % 
+    % % Check if valid_range is defined
+    % valid_range_defined = false;
+    % for i = 1:length(hdr.details.image(1).attributes)
+    %     if strcmp(hdr.details.image(1).attributes{1, i}, 'valid_range')
+    %         valid_range_defined = true;
+    %         break;
+    %     end
+    % end
+    % 
+    % % If valid_range is not defined, consider setting it based on the data type
+    % if ~valid_range_defined
+    %     vol_min = min(vol(:));
+    %     vol_max = max(vol(:));
+    % 
+    %     hdr.details.image(1).attributes{1, end+1} = 'valid_range';
+    %     hdr.details.image(1).values{1, end+1} = [vol_min, vol_max];
+    % end
+    % 
+    % end
 
-    % Set up correct dimension order 
+    % Set up correct dimension order                    
     hdr.info.dimension_order = {'xspace', 'yspace', 'zspace'};
 
     %%  Create and Write dimensions
@@ -187,9 +212,11 @@ function minc2_write(file_name, hdr, vol)
 
 
     % Write image attributes 
-    for i = 1:length(hdr.details.image(1).attributes)
-
+    for i = 1:length(hdr.details.image(1).attributes)       
         h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,i}, hdr.details.image(1).values{1,i});
+        if isfield(hdr.details.image(1), 'attributes') && isequal(hdr.details.image(1).attributes{1,i}, 'valid_range')
+            h5writeatt(file_name, '/minc-2.0/image/0/image', 'valid_range', hdr.details.image(1).values{1,6})
+        end
     end 
     
     %% Create and write image max 
@@ -258,7 +285,7 @@ function minc2_write(file_name, hdr, vol)
                          'ChunkSize', info_chunksize, 'Deflate', info_filters, 'Fillvalue', info_fillValue);
                 h5write(file_name, ['/minc-2.0/info/' info_name], cast(dim_size, HDF5_info_datatype));
             else 
-                if ~startsWith(info_name, 'dicom') % C.R. amie, I would remove this from the read function too --> I think I fixed this 
+                if ~startsWith(info_name, 'dicom')  
                     HDF5_info_datatype = data_type(hdr.details.variables(i).type);
             
                     h5create(file_name,[ '/minc-2.0/info/' info_name], 1, 'Datatype', HDF5_info_datatype);
