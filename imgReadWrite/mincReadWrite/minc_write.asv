@@ -85,7 +85,7 @@ function minc_write(file_name, hdr, vol)
             minc2_write(mnc_file,hdr,vol);
          end
          gzip(mnc_file, file_path)                                      
-         delete(mnc_file); 
+         delete(mnc_file); % deleted original .mnc and just leaves .mnc.gz
          return
      else
          if strcmp(hdr.type, 'minc1')
@@ -100,8 +100,13 @@ end
 
 function minc1_write(file_name, hdr, vol)
 
-    %% Create netCDF file 
-    ncid = netcdf.create(file_name, 'CLOBBER'); 
+    % Test 
+    % file = 'DeepStructureMask.mnc';
+    % [hdr, vol] = minc_read(file);
+    % file_name = 'DSM.mnc';
+
+    % Create netCDF file 
+    ncid = netcdf.create(file_name, 'CLOBBER'); % CLOBBER overwrite any existing file with same name 
 
 
     %% Define global attributes 
@@ -163,6 +168,11 @@ end
 
 
 function minc2_write(file_name, hdr, vol)
+
+    % Test 
+    % file = 'mni_icbm152_wm_tal_nlin_sym_09a.mnc';
+    % [hdr, vol] = minc_read(file);
+    % file_name = 'atlas_test.mnc';
 
     % If the file you are writing already exists...
     if exist(file_name, 'file')                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
@@ -277,7 +287,7 @@ function minc2_write(file_name, hdr, vol)
 
 
 
-    %% Create the /minc-2.0/info group using H5G.create (low level function)
+    % Create the /minc-2.0/info group using H5G.create (low level function)
     file_id = H5F.open(file_name, 'H5F_ACC_RDWR', 'H5P_DEFAULT');
     group_id = H5G.create(file_id, '/minc-2.0/info', 'H5P_DEFAULT', 'H5P_DEFAULT', 'H5P_DEFAULT');
     H5G.close(group_id);
