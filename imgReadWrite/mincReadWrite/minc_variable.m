@@ -71,7 +71,7 @@ if nargin == 2
     return
 end
 
-ind2 = find(ismember(list_att,att_name)); t
+ind2 = find(ismember(list_att,att_name)); 
 
 if isempty(ind2)
     error('Could not find attribute %s in variable %s',att_name,dim_name)
