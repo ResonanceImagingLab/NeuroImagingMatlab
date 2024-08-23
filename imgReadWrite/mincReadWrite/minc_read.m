@@ -1,5 +1,4 @@
 function [hdr,vol] = minc_read(file_name)
-%file_name = 'hfa.mnc';
 % Read a MINC file http://en.wikibooks.org/wiki/MINC
 %
 % [HDR,VOL] = MINC_READ(FILE_NAME,OPT)
@@ -48,6 +47,7 @@ function [hdr,vol] = minc_read(file_name)
 %
 % See license and notes in the code. 
 % Maintainer : pierre.bellec@criugm.qc.ca
+% Updated by: Amie Demmans (2024), demmansa@mcmaster.ca
 
 % NOTE 1:
 %   The strategy is different in Matlab and Octave.
@@ -185,6 +185,282 @@ end
 
 % Normalize the data (eps = 2.2204e-16)
 
+if strcmp(hdr.type,'minc1')
+    dataType = data_type_minc1(hdr.details.data.type);
+elseif strcmp(hdr.type, 'minc2')
+    dataType = data_type_minc2(hdr.details.image(1).type);
+end
+     
+if strcmp(dataType, 'single') || strcmp(dataType, 'double')
+return 
+end
+
+
+if size(hdr.details.data.image_min,2)>1
+    error('Normalization with more than one dimension is not supported')
+end
+
+if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max)
+    
+    if (length(hdr.details.data.image_min)==1)&&(length(hdr.details.data.image_max)==1)&&...
+       ((abs(min(vol(:))-hdr.details.data.image_min)>eps)||(abs(max(vol(:))-hdr.details.data.image_max)>eps))
+
+        % Replace the image_min and image_max with data type min and max
+        min_val = double(intmin(dataType));
+        max_val = double (intmax(dataType));
+
+        vol = ((vol - min(vol(:))) / (max(vol(:)) - min(vol(:)))) * (max_val - min_val) + min_val;
+
+    elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&...
+           (length(hdr.details.data.image_min)==size(vol,ndims(vol)))
+
+            min_val = double(intmin(dataType));
+            max_val = double (intmax(dataType));
+    
+        switch ndims(vol)
+            case 3
+                min_vol = squeeze(min(min(vol)));
+                max_vol = squeeze(max(max(vol)));
+                if any(abs(min_vol(:) - hdr.details.data.image_min(:)) > eps) || any(abs(max_vol(:) - hdr.details.data.image_max(:)) > eps)
+                    
+                    weights = max_vol - min_vol;
+                    weights(weights == 0) = 1; % Avoid division by zero
+            
+                    % Replicate min_vol and weights across the first two dimensions
+                    min_vol = reshape(min_vol, [1, 1, length(min_vol)]);  % 1x1x189
+                    weights = reshape(weights, [1, 1, length(weights)]);  % 1x1x189
+            
+                    % Broadcast across the first two dimensions (197x233x189)
+                    min_vol = repmat(min_vol, [size(vol, 1), size(vol, 2), 1]);
+                    weights = repmat(weights, [size(vol, 1), size(vol, 2), 1]);
+            
+                    % Normalize vol using broadcasting
+                    vol = (vol - min_vol) ./ weights;
+            
+                    % Apply data type range
+                    vol = vol * (max_val - min_val) + min_val;
+                end
+
+            case 4
+                min_vol = squeeze(min(min(min(vol))));
+                max_vol = squeeze(max(max(max(vol))));
+                if any(abs(min_vol(:) - hdr.details.data.image_min(:)) > eps) || any(abs(max_vol(:) - hdr.details.data.image_max(:)) > eps)
+                   
+                    weights = max_vol - min_vol;
+                    weights(weights == 0) = 1; % Avoid division by zero
+            
+                    % Replicate min_vol and weights across the first two dimensions
+                    min_vol = reshape(min_vol, [1, 1, 1, length(min_vol)]);  % 1x1x189
+                    weights = reshape(weights, [1, 1, 1, length(weights)]);  % 1x1x189
+            
+                    % Broadcast across the first two dimensions (197x233x189)
+                    min_vol = repmat(min_vol, [size(vol, 1), size(vol, 2), size(vol,3), 1]);
+                    weights = repmat(weights, [size(vol, 1), size(vol, 2), size(vol,3), 1]);
+            
+                    % Normalize vol using broadcasting
+                    vol = (vol - min_vol) ./ weights;
+            
+                    % Apply data type range
+                    vol = vol * (max_val - min_val) + min_val;
+                end 
+
+            otherwise
+                error('slice-based intensity normalization is not supported when the dimensionality of the array is not 3 or 4')
+        end
+    end 
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%% Matlab and MINC1 %%
+%%%%%%%%%%%%%%%%%%%%%%
+
+function [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,nbdims,nvars,ngatts)
+hdr.file_name = '';
+
+%% Read global attributes
+
+for num_g = 1:ngatts
+    hdr.details.globals(num_g).name   = netcdf.inqAttName(ncid,netcdf.getConstant('NC_GLOBAL'),num_g-1);
+    hdr.details.globals(num_g).values = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.details.globals(num_g).name);
+end
+
+%% Read dimensions
+
+hdr.dimension_order = cell(1,nbdims);
+hdr.dimensions = zeros(1,nbdims);
+for num_d = 1:nbdims
+    [hdr.dimension_order{num_d},hdr.dimensions(num_d)] = netcdf.inqDim(ncid,num_d-1);
+end
+hdr.dimension_order = hdr.dimension_order(end:-1:1); % in matlab, ordering of dimensions is reversed compared to NETCDF
+
+%% Read variables
+
+for num_v = 1:nvars
+    [hdr.details.variables(num_v).name,hdr.details.variables(num_v).type,dimids,natts] = netcdf.inqVar(ncid,num_v-1);
+    hdr.details.variables(num_v).attributes = cell([natts 1]);
+    hdr.details.variables(num_v).values     = cell([natts 1]);
+    for num_a = 1:natts        
+        hdr.details.variables(num_v).attributes{num_a} = netcdf.inqAttName(ncid,num_v-1,num_a-1);
+        hdr.details.variables(num_v).values{num_a}     = netcdf.getAtt(ncid,num_v-1,hdr.details.variables(num_v).attributes{num_a});        
+    end
+end
+
+%% Read image-min / image-max / image type
+
+var_names = {hdr.details.variables(:).name};
+hdr.details.data.image_min = netcdf.getVar(ncid,find(ismember(var_names,'image-min'))-1);
+hdr.details.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-max'))-1);
+[tmp,hdr.details.data.type] = netcdf.inqVar(ncid,find(ismember(var_names,'image'))-1);
+
+%% Read volume
+
+if nargout > 1
+    vol = double(netcdf.getVar(ncid,find(ismember(var_names,'image'))-1));
+end
+
+netcdf.close(ncid);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%
+%% Matlab and MINC2 %%
+%%%%%%%%%%%%%%%%%%%%%%
+
+function [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name)
+
+%% Globals
+
+hdr.details.globals.history = '';
+hdr.details.globals.ident = '';
+hdr.details.globals.minc_version = '';
+list_globals = {str_data.Groups.Attributes.Name}; 
+
+for num_global = 1:length(list_globals) 
+    if strfind(list_globals{num_global},'history')
+        hdr.details.globals.history = str_data.Groups.Attributes(num_global).Value; 
+    elseif strfind(list_globals{num_global},'ident') 
+        hdr.details.globals.ident = str_data.Groups.Attributes(num_global).Value;
+    elseif strfind(list_globals{num_global},'minc_version') 
+        hdr.details.globals.minc_version = str_data.Groups.Attributes(num_global).Value;
+    end
+end
+
+%% Extract dimension order in a usable format
+
+tmp = h5readatt(file_name,'/minc-2.0/image/0/image','dimorder'); 
+ind = strfind(tmp,','); 
+nb_dims = length(ind)+1; 
+curr_pos = 1; 
+ind = [ind length(tmp)];
+
+for num_dim = 1:nb_dims 
+    hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1);
+    curr_pos = ind(num_dim)+1;
+end
+
+if isequal(ind, [7, 14, 20])
+    ind = strfind(tmp,','); 
+    nb_dims = length(ind)+1; 
+    curr_pos = 1;
+    ind = [ind length(tmp)+1];
+    for num_dim = 1:nb_dims 
+    hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1);
+    curr_pos = ind(num_dim)+1;
+    end
+end
+ 
+hdr.dimension_order = hdr.dimension_order(end:-1:1); % Matlab/Octave invert dimension orders compared to HDF5 
+hdr.file_name = ''; 
+labels        = {str_data.Groups.Groups(:).Name}; 
+
+%% Read dimensions length
+tmp = h5info(file_name,'/minc-2.0/image/0/image/');
+for num_dim = 1:nb_dims 
+    hdr.dimensions(num_dim) = tmp.Dataspace.Size(num_dim); 
+end
+
+%% Read dimensions
+
+mask_dim  = ismember(labels,'/minc-2.0/dimensions'); 
+list_dimensions = {str_data.Groups.Groups(mask_dim).Datasets(:).Name};
+for num_d = 1:length(list_dimensions)  
+
+    hdr.details.variables(num_d).name        = list_dimensions{num_d};
+    hdr.details.variables(num_d).attributes  = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Name};
+    hdr.details.variables(num_d).values      = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Value};
+    hdr.details.variables(num_d).type        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Datatype.Type};
+    hdr.details.variables(num_d).size        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Dataspace.Type};
+    hdr.details.variables(num_d).chunksize   = {str_data.Groups.Groups(mask_dim).Datasets(num_d).ChunkSize};
+    hdr.details.variables(num_d).filters     = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Filters};
+    hdr.details.variables(num_d).fillValue   = {str_data.Groups.Groups(mask_dim).Datasets(num_d).FillValue};
+
+end
+
+%% Read Info
+
+mask_info  = ismember(labels,'/minc-2.0/info'); 
+nb_var = length(list_dimensions); 
+
+if ~isempty(str_data.Groups.Groups(mask_info).Datasets) 
+    list_info = {str_data.Groups.Groups(mask_info).Datasets(:).Name};
+    
+
+        for num_d = 1:length(list_info) 
+            nb_var = nb_var+1;  
+            %if ~startsWith(list_info{num_d}, 'dicom')
+    
+            if  ~isempty(str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes) 
+                
+                hdr.details.variables(nb_var).name        = list_info{num_d};
+                hdr.details.variables(nb_var).attributes  = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name}; 
+                hdr.details.variables(nb_var).values      = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
+                hdr.details.variables(nb_var).type        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Datatype.Type};
+                hdr.details.variables(nb_var).size        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Dataspace.Type};
+                hdr.details.variables(nb_var).chunksize   = {str_data.Groups.Groups(mask_info).Datasets(num_d).ChunkSize};
+                hdr.details.variables(nb_var).filters     = {str_data.Groups.Groups(mask_info).Datasets(num_d).Filters};
+                hdr.details.variables(nb_var).fillValue   = {str_data.Groups.Groups(mask_info).Datasets(num_d).FillValue};
+                
+            end       
+            %end
+        end
+
+end
+
+%% 
+% %% Read image-min / image-max
+hdr.details.data.image_min = h5read(file_name,'/minc-2.0/image/0/image-min');
+hdr.details.data.image_max = h5read(file_name,'/minc-2.0/image/0/image-max');
+
+%% Read Image info
+mask_image  = ismember(labels,'/minc-2.0/image'); 
+list_image = {str_data.Groups.Groups(mask_image).Groups.Datasets(:).Name}; 
+for num_d = 1:length(list_image)  
+    
+    hdr.details.image(num_d).name        = list_image{num_d}; 
+    hdr.details.image(num_d).attributes  = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Name};
+    hdr.details.image(num_d).values      = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Value};
+    hdr.details.image(num_d).type        = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Datatype.Type};
+    hdr.details.image(num_d).size        = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Dataspace.Type};
+    hdr.details.image(num_d).chunksize   = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).ChunkSize};
+    hdr.details.image(num_d).filters     = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Filters};
+    hdr.details.image(num_d).fillValue   = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).FillValue};
+
+end
+
+
+
+%% Read volume
+if nargout>1
+
+    vol = h5read(file_name,'/minc-2.0/image/0/image');
+    vol = double(vol);
+
+end
+end 
+end 
+
+
+
 % if size(hdr.details.data.image_min,2)>1
 %     error('Normalization with more than one dimension is not supported')
 % end
@@ -234,36 +510,7 @@ end
 %     end 
 % end
 
-
-
-if size(hdr.details.data.image_min,2)>1
-    error('Normalization with more than one dimension is not supported')
-end
-
-if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max)
-    
-    if (length(hdr.details.data.image_min)==1)&&(length(hdr.details.data.image_max)==1)&&...
-       ((abs(min(vol(:))-hdr.details.data.image_min)>eps)||(abs(max(vol(:))-hdr.details.data.image_max)>eps))
-
-        % Replace the image_min and image_max with data type min and max
-        dataType = data_type(hdr.details.image(1).type);
-        min_val = double(intmin(dataType));
-        max_val = double (intmax(dataType));
-        vol = ((vol - min(vol(:))) / (max(vol(:)) - min(vol(:)))) * (max_val - min_val) + min_val;
-
-    elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&...
-           (length(hdr.details.data.image_min)==size(vol,ndims(vol)))
-
-        dataType = data_type(hdr.details.image(1).type);
-        min_val = double(intmin(dataType));
-        max_val = double (intmax(dataType));
-    
-        switch ndims(vol)
-            case 3
-                min_vol = squeeze(min(min(vol)));
-                max_vol = squeeze(max(max(vol)));
-                if any(abs(min_vol(:) - hdr.details.data.image_min(:)) > eps) || any(abs(max_vol(:) - hdr.details.data.image_max(:)) > eps)
-                    % weights = reshape(repmat(max_vol' - min_vol', [size(vol,1) * size(vol,2), 1]), size(vol));
+% weights = reshape(repmat(max_vol' - min_vol', [size(vol,1) * size(vol,2), 1]), size(vol));
                     % weights(weights == 0) = 1;
                     % vol = (vol - reshape(repmat(min_vol', [size(vol,1) * size(vol,2), 1]), size(vol))) ./ weights;
                     % vol = vol .* (reshape(repmat(max_val', [size(vol,1) * size(vol,2), 1]), size(vol)) - ...
@@ -277,249 +524,3 @@ if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max)
                     % 
                     % % Apply data type range without reshaping
                     % vol = vol * (max_val - min_val) + min_val;
-                    weights = max_vol - min_vol;
-                    weights(weights == 0) = 1; % Avoid division by zero
-            
-                    % Replicate min_vol and weights across the first two dimensions
-                    min_vol = reshape(min_vol, [1, 1, length(min_vol)]);  % 1x1x189
-                    weights = reshape(weights, [1, 1, length(weights)]);  % 1x1x189
-            
-                    % Broadcast across the first two dimensions (197x233x189)
-                    min_vol = repmat(min_vol, [size(vol, 1), size(vol, 2), 1]);
-                    weights = repmat(weights, [size(vol, 1), size(vol, 2), 1]);
-            
-                    % Normalize vol using broadcasting
-                    vol = (vol - min_vol) ./ weights;
-            
-                    % Apply data type range
-                    vol = vol * (max_val - min_val) + min_val;
-                end
-
-            case 4
-                min_vol = squeeze(min(min(min(vol))));
-                max_vol = squeeze(max(max(max(vol))));
-                if any(abs(min_vol(:) - hdr.details.data.image_min(:)) > eps) || any(abs(max_vol(:) - hdr.details.data.image_max(:)) > eps)
-                    % weights = reshape(repmat(max_vol' - min_vol', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol));
-                    % weights(weights == 0) = 1;
-                    % vol = (vol - reshape(repmat(min_vol', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol))) ./ weights;
-                    % vol = vol .* (reshape(repmat(max_val', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol)) - ...
-                    %               reshape(repmat(min_val', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol))) + ...
-                    %               reshape(repmat(min_val', [size(vol,1) * size(vol,2) * size(vol,3), 1]), size(vol));
-                    weights = max_vol - min_vol;
-                    weights(weights == 0) = 1; % Avoid division by zero
-            
-                    % Replicate min_vol and weights across the first two dimensions
-                    min_vol = reshape(min_vol, [1, 1, 1, length(min_vol)]);  % 1x1x189
-                    weights = reshape(weights, [1, 1, 1, length(weights)]);  % 1x1x189
-            
-                    % Broadcast across the first two dimensions (197x233x189)
-                    min_vol = repmat(min_vol, [size(vol, 1), size(vol, 2), size(vol,3), 1]);
-                    weights = repmat(weights, [size(vol, 1), size(vol, 2), size(vol,3), 1]);
-            
-                    % Normalize vol using broadcasting
-                    vol = (vol - min_vol) ./ weights;
-            
-                    % Apply data type range
-                    vol = vol * (max_val - min_val) + min_val;
-                end 
-
-            otherwise
-                error('slice-based intensity normalization is not supported when the dimensionality of the array is not 3 or 4')
-        end
-    end 
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%
-%% Matlab and MINC1 %%
-%%%%%%%%%%%%%%%%%%%%%%
-
-function [hdr,vol] = sub_read_matlab_minc1(hdr,ncid,nbdims,nvars,ngatts)
-hdr.file_name = '';
-
-%% Read global attributes
-for num_g = 1:ngatts
-    hdr.details.globals(num_g).name   = netcdf.inqAttName(ncid,netcdf.getConstant('NC_GLOBAL'),num_g-1);
-    hdr.details.globals(num_g).values = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),hdr.details.globals(num_g).name);
-end
-
-%% Read dimensions
-hdr.dimension_order = cell(1,nbdims);
-hdr.dimensions = zeros(1,nbdims);
-for num_d = 1:nbdims
-    [hdr.dimension_order{num_d},hdr.dimensions(num_d)] = netcdf.inqDim(ncid,num_d-1);
-end
-hdr.dimension_order = hdr.dimension_order(end:-1:1); % in matlab, ordering of dimensions is reversed compared to NETCDF
-
-%% Read variables
-for num_v = 1:nvars
-    [hdr.details.variables(num_v).name,hdr.details.variables(num_v).type,dimids,natts] = netcdf.inqVar(ncid,num_v-1);
-    hdr.details.variables(num_v).attributes = cell([natts 1]);
-    hdr.details.variables(num_v).values     = cell([natts 1]);
-    for num_a = 1:natts        
-        hdr.details.variables(num_v).attributes{num_a} = netcdf.inqAttName(ncid,num_v-1,num_a-1);
-        hdr.details.variables(num_v).values{num_a}     = netcdf.getAtt(ncid,num_v-1,hdr.details.variables(num_v).attributes{num_a});        
-    end
-end
-
-%% Read image-min / image-max / image type
-var_names = {hdr.details.variables(:).name};
-hdr.details.data.image_min = netcdf.getVar(ncid,find(ismember(var_names,'image-min'))-1);
-hdr.details.data.image_max = netcdf.getVar(ncid,find(ismember(var_names,'image-max'))-1);
-[tmp,hdr.details.data.type] = netcdf.inqVar(ncid,find(ismember(var_names,'image'))-1);
-
-%% Read volume
-if nargout > 1
-    vol = double(netcdf.getVar(ncid,find(ismember(var_names,'image'))-1));
-end
-netcdf.close(ncid);
-end
-
-%%%%%%%%%%%%%%%%%%%%%%
-%% Matlab and MINC2 %%
-%%%%%%%%%%%%%%%%%%%%%%
-
-function [hdr,vol] = sub_read_matlab_minc2(str_data,hdr,file_name)
-
-%% Globals
-hdr.details.globals.history = '';
-hdr.details.globals.ident = '';
-hdr.details.globals.minc_version = '';
-%list_globals = {str_data.GroupHierarchy.Groups.Attributes.Name}; % C.R.
-    %made this change to the code below GroupHierachy-> Group
-list_globals = {str_data.Groups.Attributes.Name}; 
-
-for num_global = 1:length(list_globals) 
-    if strfind(list_globals{num_global},'history')
-        hdr.details.globals.history = str_data.Groups.Attributes(num_global).Value; 
-    elseif strfind(list_globals{num_global},'ident') 
-        hdr.details.globals.ident = str_data.Groups.Attributes(num_global).Value;
-    elseif strfind(list_globals{num_global},'minc_version') 
-        hdr.details.globals.minc_version = str_data.Groups.Attributes(num_global).Value;
-    end
-end
-
-%% Extract dimension order in a usable format
-% h5disp(file_name,'/minc-2.0/image/0/image/');
-
-tmp = h5readatt(file_name,'/minc-2.0/image/0/image','dimorder'); % specifically reading attribute name dimorder (should be xspace, zspace, yspace)
-ind = strfind(tmp,','); 
-nb_dims = length(ind)+1; 
-curr_pos = 1; 
-%ind = [ind length(tmp)+1]; % A.D--> made change as there was an additional
-%                            space added after yspace that was not needed 
-ind = [ind length(tmp)];
-for num_dim = 1:nb_dims 
-    hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1);
-    curr_pos = ind(num_dim)+1;
-end
-
-if isequal(ind, [7, 14, 20])
-    ind = strfind(tmp,','); 
-    nb_dims = length(ind)+1; 
-    curr_pos = 1;
-    ind = [ind length(tmp)+1];
-    for num_dim = 1:nb_dims 
-    hdr.dimension_order{num_dim} = tmp(curr_pos:ind(num_dim)-1);
-    curr_pos = ind(num_dim)+1;
-    end
-end
- 
-hdr.dimension_order = hdr.dimension_order(end:-1:1); % Matlab/Octave invert dimension orders compared to HDF5 
-hdr.file_name = ''; 
-labels        = {str_data.Groups.Groups(:).Name}; 
-
-%% Read dimensions length
-tmp = h5info(file_name,'/minc-2.0/image/0/image/'); % Obtain info from this path and return strucure tmp containing the metadata
-for num_dim = 1:nb_dims % Looping over each dimension 
-     %hdr.dimensions(num_dim) = h5read(file_name,['/minc-2.0/dimensions/' hdr.dimension_order{num_dim} ,'/'],'length');
-    hdr.dimensions(num_dim) = tmp.Dataspace.Size(num_dim); % Assigns the size of num_dim dimensions to hdr.dimensions(num_dim)
-end
-
-%% Read dimensions
-%variables = h5info(file_name,'/minc-2.0/dimensions');
-%h5disp(file_name,'/minc-2.0/dimensions/xspace')
-
-mask_dim  = ismember(labels,'/minc-2.0/dimensions'); 
-list_dimensions = {str_data.Groups.Groups(mask_dim).Datasets(:).Name};
-for num_d = 1:length(list_dimensions)  
-    %hdr.details.variables(num_d).name  =list_dimensions{num_d}(22:end); 
-    % ^ A.D--> made this change as Groups.Hierarchy no longer exists so
-    %           22:end no longer valid 
-    hdr.details.variables(num_d).name        = list_dimensions{num_d}; % Assigning entire dataset name from list_dimensions{num_d} directly to structure 
-    hdr.details.variables(num_d).attributes  = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Name};
-    hdr.details.variables(num_d).values      = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Attributes(:).Value};
-    hdr.details.variables(num_d).type        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Datatype.Type};
-    hdr.details.variables(num_d).size        = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Dataspace.Type};
-    hdr.details.variables(num_d).chunksize   = {str_data.Groups.Groups(mask_dim).Datasets(num_d).ChunkSize};
-    hdr.details.variables(num_d).filters     = {str_data.Groups.Groups(mask_dim).Datasets(num_d).Filters};
-    hdr.details.variables(num_d).fillValue   = {str_data.Groups.Groups(mask_dim).Datasets(num_d).FillValue};
-end
-
-%% Read Info
-
-mask_info  = ismember(labels,'/minc-2.0/info'); 
-nb_var = length(list_dimensions); 
-
-if ~isempty(str_data.Groups.Groups(mask_info).Datasets) 
-    list_info = {str_data.Groups.Groups(mask_info).Datasets(:).Name};
-    
-
-        for num_d = 1:length(list_info) 
-            nb_var = nb_var+1;  
-            %if ~startsWith(list_info{num_d}, 'dicom')
-            %hdr.details.variables(nb_var).name =list_info{num_d}(16:end); 
-            % ^ A.D--? made this change as Groups.Hierarchy no longer exists so
-            %           16:end no longer valid 
-            % hdr.details.variables(nb_var).name        = list_info{num_d}; % Assigns full name of datasets in list_info to designated structure
-    
-            if  ~isempty(str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes) 
-                
-                hdr.details.variables(nb_var).name        = list_info{num_d};
-                hdr.details.variables(nb_var).attributes  = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Name}; % Extracts names of attributes 
-                hdr.details.variables(nb_var).values      = {str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes(:).Value};
-                hdr.details.variables(nb_var).type        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Datatype.Type};
-                hdr.details.variables(nb_var).size        = {str_data.Groups.Groups(mask_info).Datasets(num_d).Dataspace.Type};
-                hdr.details.variables(nb_var).chunksize   = {str_data.Groups.Groups(mask_info).Datasets(num_d).ChunkSize};
-                hdr.details.variables(nb_var).filters     = {str_data.Groups.Groups(mask_info).Datasets(num_d).Filters};
-                hdr.details.variables(nb_var).fillValue   = {str_data.Groups.Groups(mask_info).Datasets(num_d).FillValue};
-                
-            end       
-            %end
-        end
-
-end
-
-%% 
-% %% Read image-min / image-max
-hdr.details.data.image_min = h5read(file_name,'/minc-2.0/image/0/image-min');
-hdr.details.data.image_max = h5read(file_name,'/minc-2.0/image/0/image-max');
-
-%% Read Image info
-mask_image  = ismember(labels,'/minc-2.0/image'); 
-list_image = {str_data.Groups.Groups(mask_image).Groups.Datasets(:).Name}; 
-for num_d = 1:length(list_image)  
-    %hdr.details.image(num_d).name        = list_image{num_d}(19:end);
-    % ^ A.D--? made this change as Groups.Hierarchy no longer exists so
-    %           19:end no longer valid 
-    hdr.details.image(num_d).name        = list_image{num_d}; 
-    hdr.details.image(num_d).attributes  = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Name};
-    hdr.details.image(num_d).values      = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Attributes(:).Value};
-    hdr.details.image(num_d).type        = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Datatype.Type};
-    hdr.details.image(num_d).size        = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Dataspace.Type};
-    hdr.details.image(num_d).chunksize   = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).ChunkSize};
-    hdr.details.image(num_d).filters     = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).Filters};
-    hdr.details.image(num_d).fillValue   = {str_data.Groups.Groups(mask_image).Groups.Datasets(num_d).FillValue};
-end
-
-
-
-%% Read volume
-if nargout>1
-    % vol = hdf5read(file_name,'/minc-2.0/image/0/image');
-    vol = h5read(file_name,'/minc-2.0/image/0/image');
-    vol = double(vol); % Convert everything to double to avoid problems, even if that's dirty
-
-end
-end 
-end 
