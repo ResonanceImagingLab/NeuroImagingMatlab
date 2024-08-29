@@ -202,40 +202,47 @@ function [hdr,vol] = minc_read(file_name)
     
     % Normalize vol with data type min and max
     if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max)
-        % If image min and max are scalar 
+        % If image min and max are scalar and deviate by vol min and max >eps
         if (length(hdr.details.data.image_min)==1)&&(length(hdr.details.data.image_max)==1)&&...
                 ((abs(min(vol(:))-hdr.details.data.image_min)>eps)||(abs(max(vol(:))-hdr.details.data.image_max)>eps))
     
-            min_val = double(intmin(dataType)); 
-            max_val = double (intmax(dataType));
-            
-            vol = ((vol - min(vol(:))) / (max(vol(:)) - min(vol(:)))) * (max_val - min_val) + min_val;
-
-        % If image_min and max are vectors
-        elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&...
-                (length(hdr.details.data.image_min)==size(vol,ndims(vol))) 
     
             min_val = double(intmin(dataType)); 
-            max_val = double (intmax(dataType)); 
+            max_val = double (intmax(dataType)); % max val of datatype
+    
+            % Normalize vol by subtracting min vol, scaling to [0 1] then
+            % scaling that to min_val and max_val
+            vol = ((vol - min(vol(:))) / (max(vol(:)) - min(vol(:)))) * (max_val - min_val) + min_val;
+    
+        elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&...
+                (length(hdr.details.data.image_min)==size(vol,ndims(vol))) % If image_min and max are vectors
+    
+            min_val = double(intmin(dataType)); % min val of datatype
+            max_val = double (intmax(dataType)); % max val of datatype
     
             % Diff cases for if time is included as dimension
             switch ndims(vol)
                 case 3
-                    min_vol = squeeze(min(min(vol))); 
-                    max_vol = squeeze(max(max(vol))); 
+                    min_vol = squeeze(min(min(vol))); % min val along last dimension
+                    max_vol = squeeze(max(max(vol))); % max val along last dimension
                     if any(abs(min_vol(:) - hdr.details.data.image_min(:)) > eps) || any(abs(max_vol(:) - hdr.details.data.image_max(:)) > eps)
+                        % If min and max vol > eps
     
-                        weights = max_vol - min_vol; 
-                        weights(weights == 0) = 1; 
+                        weights = max_vol - min_vol; % Intensity range
+                        weights(weights == 0) = 1; % Avoid division by zero
     
+                        % Reshape to a 3D array for proper calculation
                         min_vol = reshape(min_vol, [1, 1, length(min_vol)]);
                         weights = reshape(weights, [1, 1, length(weights)]);
     
+                        % Match min_vol and weights to vol array size
                         min_vol = repmat(min_vol, [size(vol, 1), size(vol, 2), 1]);
                         weights = repmat(weights, [size(vol, 1), size(vol, 2), 1]);
     
+                        % Normalize vol to [0 1]
                         vol = (vol - min_vol) ./ weights;
     
+                        % Apply data type range
                         vol = vol * (max_val - min_val) + min_val;
                     end
     
@@ -245,16 +252,20 @@ function [hdr,vol] = minc_read(file_name)
                     if any(abs(min_vol(:) - hdr.details.data.image_min(:)) > eps) || any(abs(max_vol(:) - hdr.details.data.image_max(:)) > eps)
     
                         weights = max_vol - min_vol;
-                        weights(weights == 0) = 1; 
+                        weights(weights == 0) = 1; % Avoid division by zero
     
-                        min_vol = reshape(min_vol, [1, 1, 1, length(min_vol)]);  
-                        weights = reshape(weights, [1, 1, 1, length(weights)]);  
+                        % Replicate min_vol and weights across the first two dimensions
+                        min_vol = reshape(min_vol, [1, 1, 1, length(min_vol)]);  % 1x1x189
+                        weights = reshape(weights, [1, 1, 1, length(weights)]);  % 1x1x189
     
+                        % Broadcast across the first two dimensions (197x233x189)
                         min_vol = repmat(min_vol, [size(vol, 1), size(vol, 2), size(vol,3), 1]);
                         weights = repmat(weights, [size(vol, 1), size(vol, 2), size(vol,3), 1]);
     
+                        % Normalize vol using broadcasting
                         vol = (vol - min_vol) ./ weights;
     
+                        % Apply data type range
                         vol = vol * (max_val - min_val) + min_val;
                     end
     
@@ -368,7 +379,6 @@ function [hdr,vol] = minc_read(file_name)
         labels        = {str_data.Groups.Groups(:).Name};
 
         %% Read dimensions length
-        
         tmp = h5info(file_name,'/minc-2.0/image/0/image/');
         for num_dim = 1:nb_dims
             hdr.dimensions(num_dim) = tmp.Dataspace.Size(num_dim);
@@ -399,8 +409,10 @@ function [hdr,vol] = minc_read(file_name)
         if ~isempty(str_data.Groups.Groups(mask_info).Datasets)
             list_info = {str_data.Groups.Groups(mask_info).Datasets(:).Name};
 
+
             for num_d = 1:length(list_info)
                 nb_var = nb_var+1;
+                %if ~startsWith(list_info{num_d}, 'dicom')
 
                 if  ~isempty(str_data.Groups.Groups(mask_info).Datasets(num_d).Attributes)
 
@@ -414,11 +426,13 @@ function [hdr,vol] = minc_read(file_name)
                     hdr.details.variables(nb_var).fillValue   = {str_data.Groups.Groups(mask_info).Datasets(num_d).FillValue};
 
                 end
+                %end
             end
 
         end
 
-        %% Read image-min / image-max
+        %%
+        % %% Read image-min / image-max
         hdr.details.data.image_min = h5read(file_name,'/minc-2.0/image/0/image-min');
         hdr.details.data.image_max = h5read(file_name,'/minc-2.0/image/0/image-max');
 
@@ -438,6 +452,8 @@ function [hdr,vol] = minc_read(file_name)
 
         end
 
+
+
         %% Read volume
         if nargout>1
 
@@ -448,3 +464,68 @@ function [hdr,vol] = minc_read(file_name)
     end
 end
 
+
+
+% if size(hdr.details.data.image_min,2)>1
+%     error('Normalization with more than one dimension is not supported')
+% end
+% if ~isempty(hdr.details.data.image_min)&&~isempty(hdr.details.data.image_max) % If either of these fields are empty, normalization is skipped 
+%     if (length(hdr.details.data.image_min)==1)&&(length(hdr.details.data.image_max)==1)&&((abs(min(vol(:))-hdr.details.data.image_min)>eps)||(abs(max(vol(:))-hdr.details.data.image_max)>eps))
+%         % Handles case where image_min and max are single vals 
+%         % If min and max of vol are different from Image_min and max by a
+%         % small threshold eps, normalization is performed 
+%         vol = ((vol-min(vol(:)))/(max(vol(:))-min(vol(:))))*(hdr.details.data.image_max-hdr.details.data.image_min)+hdr.details.data.image_min; % Scales values in vol to a range between image_min and max 
+% 
+%     elseif (length(hdr.details.data.image_min)>1)&&(length(hdr.details.data.image_min)==length(hdr.details.data.image_max))&&(length(hdr.details.data.image_min)==size(vol,ndims(vol))) %Runs this one
+%         % Handles case where image_min and max are arrays 
+%         % Checks if image_min and max lengths match size of vol along its
+%         % last dimension 
+%         switch ndims(vol)
+%             case 3 % 3D volume case 
+%                 min_vol = squeeze(min(min(vol))); % Calculates minimum value of the entire vol array (minimum intensity)
+%                 max_vol = squeeze(max(max(vol))); % Caclulates maximum value of the entire vol array (maximum intensity)
+%                 if any(abs(min_vol(:)-hdr.details.data.image_min(:))>eps)||any(abs(max_vol(:)-hdr.details.data.image_max(:))>eps) % Checks if any of min_vol or max_vol differ from image_min and image_max stored in the header by more than eps
+%                     % Normalizes each vol slice based on its own min_vol
+%                     % and max_vol vals and then scales these slices to
+%                     % match range defined by image_min and max per slice        
+%                     weights = reshape(repmat(max_vol'-min_vol',[size(vol,1)*size(vol,2) 1]),size(vol)); 
+%                     weights(weights==0) = 1;
+%                     vol = (vol - reshape(repmat(min_vol',[size(vol,1)*size(vol,2) 1]),size(vol)))./weights;
+%                     vol = vol.*(reshape(repmat(hdr.details.data.image_max(:)',[size(vol,1)*size(vol,2) 1]),size(vol))-reshape(repmat(hdr.details.data.image_min(:)', ...
+%                         [size(vol,1)*size(vol,2) 1]),size(vol)))+reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2) 1]),size(vol));
+%                 end
+%             case 4 % 4D volume case (includes time) 
+%                 % Calcs min and max intensity vals for each 3D sub-volume
+%                 % (along the 4th dimensions) 
+%                 min_vol = squeeze(min(min(min(vol)))); 
+%                 max_vol = squeeze(max(max(max(vol))));
+%                 if any(abs(min_vol(:)-hdr.details.data.image_min(:))>eps)||any(abs(max_vol(:)-hdr.details.data.image_max(:))>eps) % Checks if any sub-volume min/max vals differ from corresponding image_min and max vals by more than eps 
+%                     % Normalizes each 3D sub-vol of the 4D vol based on its
+%                     % own min_vol and max_vol values and then scales these
+%                     % sub vols to match range defined by image_min and max
+%                     weights = reshape(repmat(max_vol'-min_vol',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol));
+%                     weights(weights==0) = 1;
+%                     vol = (vol - reshape(repmat(min_vol',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol)))./weights;
+%                     vol = vol.*(reshape(repmat(hdr.details.data.image_max(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol))-reshape(repmat(hdr.details.data.image_min(:)', ...
+%                         [size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol)))+reshape(repmat(hdr.details.data.image_min(:)',[size(vol,1)*size(vol,2)*size(vol,3) 1]),size(vol));
+%                 end 
+%             otherwise
+%                 error('slice-based intensity normalization is not supported when the dimensionality of the array is not 3 or 4')
+%         end
+%     end 
+% end
+
+% weights = reshape(repmat(max_vol' - min_vol', [size(vol,1) * size(vol,2), 1]), size(vol));
+                    % weights(weights == 0) = 1;
+                    % vol = (vol - reshape(repmat(min_vol', [size(vol,1) * size(vol,2), 1]), size(vol))) ./ weights;
+                    % vol = vol .* (reshape(repmat(max_val', [size(vol,1) * size(vol,2), 1]), size(vol)) - ...
+                    %               reshape(repmat(min_val', [size(vol,1) * size(vol,2), 1]), size(vol)) + ...
+                    %               reshape(repmat(min_val', [size(vol,1) * size(vol,2), 1]), size(vol)));
+                    %  weights = max_vol - min_vol;
+                    % weights(weights == 0) = 1; % Avoid division by zero
+                    % 
+                    % % Normalize vol without using transpose
+                    % vol = (vol - min_vol) ./ weights;
+                    % 
+                    % % Apply data type range without reshaping
+                    % vol = vol * (max_val - min_val) + min_val;

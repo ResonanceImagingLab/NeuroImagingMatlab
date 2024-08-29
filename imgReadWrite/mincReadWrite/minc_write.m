@@ -1,5 +1,6 @@
 function minc_write(file_name, hdr, vol)
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MINC file help: http://en.wikibooks.org/wiki/MINC
 %
 % minc_write(file_name, hdr, vol)
@@ -58,8 +59,8 @@ function minc_write(file_name, hdr, vol)
 % NOTE 3: 
 %   minc1_write is based on that from 
 %     https://github.com/SIMEXP/mominc/blob/master/mom_write_minc1_matlab.m 
-%
-% Do I need to include the copyright info? 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 
     if nargin<2
@@ -230,9 +231,7 @@ function minc2_write(file_name, hdr, vol)
     % Write image attributes 
     for i = 1:length(hdr.details.image(1).attributes)       
         h5writeatt(file_name, '/minc-2.0/image/0/image', hdr.details.image(1).attributes{1,i}, hdr.details.image(1).values{1,i});
-        if isfield(hdr.details.image(1), 'attributes') && isequal(hdr.details.image(1).attributes{1,i}, 'valid_range')
-            h5writeatt(file_name, '/minc-2.0/image/0/image', 'valid_range', hdr.details.image(1).values{1,i})
-        end
+
     end 
     
     %% Create and write image max 
