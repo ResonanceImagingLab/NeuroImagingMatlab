@@ -41,7 +41,7 @@ if strcmp(hdr.type,'minc1')
         info_v.history = hdr.details.globals(ind).values;
     end
 else
-    info_v.history = hdr.details.globals.history; % Directly assigns the history field from hdr.details.globals 
+    info_v.history = hdr.details.globals.history;
 end
 
 %% Get information on the order of the dimensions
@@ -59,19 +59,9 @@ for num_d = 1:length(info_v.dimensions)
     dim_name = info_v.dimensions{num_d}; 
 
     if ~strcmp(dim_name,'time')
-        if strcmp(hdr.type,'minc1')
             cosines_v(:,num_e) = minc_variable(hdr,dim_name,'direction_cosines');
             start_v(num_e) = minc_variable(hdr,dim_name,'start');
-            step_v(num_e) = minc_variable(hdr,dim_name,'step');
-        else % Extraction of dimension details for MINC2 
-            % A.D --> changes made to match new h5info 
-            %cosines_v(:,num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/direction_cosines']);
-            cosines_v(:,num_e) = minc_variable(hdr,dim_name,'direction_cosines');
-            %start_v(num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/start']);
-            start_v(num_e) = minc_variable(hdr,dim_name,'start');
-            %step_v(num_e) = minc_variable(hdr,dim_name,['/minc-2.0/dimensions/' dim_name '/step']); 
-            step_v(num_e) = minc_variable(hdr,dim_name,'step');
-        end        
+            step_v(num_e) = minc_variable(hdr,dim_name,'step');       
         num_e = num_e + 1;
     else        
         info_v.tr = minc_variable(hdr,'time','step');
@@ -81,10 +71,11 @@ for num_d = 1:length(info_v.dimensions)
 
 end
 
-info_v.voxel_size = abs(step_v); % Calculates absolute values of the step sizes 
+info_v.voxel_size = abs(step_v); 
 
 % Constructing the voxel-to-worldspace affine transformation
-info_v.mat = eye(4); % 4x4 identity matrix used to construct the affine tansformation from voxel to world space 
+info_v.mat = eye(4); 
+
 % Construct affine transformation matrix 
 info_v.mat(1:3,1:3) = cosines_v * (diag(step_v));
 info_v.mat(1:3,4)   = cosines_v * start_v;
