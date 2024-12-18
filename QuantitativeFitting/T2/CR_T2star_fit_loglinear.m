@@ -35,6 +35,7 @@ assert(prod(localDims(1:end-1)) == Nvoxels,'all input data must have the same nu
 
 y = reshape( img, Nvoxels, nTEs).';
 
+y(y == 0) = 0.000001; % solve the log transform of 0 issue. 
 % log(0) is not defined, so warn the user about zeroes in their data 
 % for methods involving a log transform.
 % The warning can be disabled with "warning('off','hmri:zerosInInput')"
@@ -51,8 +52,6 @@ if any(y(:)==0)
         'values, as this could bias the R2* estimation.']);
 end
 
-
-
 beta=(D'*D)\(D'*log(y));
 beta(2:end,:)=exp(beta(2:end,:));
 
@@ -61,6 +60,7 @@ beta(2:end,:)=exp(beta(2:end,:));
 % extra unity in reshape argument avoids problems if size(dims)==2.
 R2s=reshape(beta(1,:),[dims(1:end-1),1]);
 T2s = abs(1./R2s);
+T2s = limitHandler(T2s, 0, 1000); % remove nan and inf
 
 % extrapolate to TE = 0;
 M0extrapolated = abs(beta(2,:));
