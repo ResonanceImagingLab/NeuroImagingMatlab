@@ -1,0 +1,11 @@
+name: dcm2bids
+channels:
+  - conda-forge
+  - hcc
+dependencies:
+  - python>=3.7
+  - nibabel
+  - nipype
+  - dcm2niix
+  - dcm2bids
+  - pydeface

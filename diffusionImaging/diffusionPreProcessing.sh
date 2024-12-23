@@ -14,6 +14,102 @@
 #0 -1 0 0.0652
 
 #########################################################################################
+# For linux installation:
+# https://www.mrtrix.org/download/linux-anaconda/
+# conda install -c mrtrix3 mrtrix3
+# conda update -c mrtrix3 mrtrix3
+
+# Note that MRtrix's call to 'eddy' requires gpu. You can either:
+# make sure you have a graphics card and install CUDA9 https://gist.github.com/DaneGardner/accd6fd330348543167719002a661bd5
+# or modify and call FSL's eddy_openmp program separately. https://web.mit.edu/fsl_v5.0.10/fsl/doc/wiki/eddy(2f)UsersGuide.html
+
+
+############## MRtrix3: #####################
+
+imgName='fn'
+imgName='Multishell_DTI_UK_Biobank_1'
+
+## Convert nifti to mif and include diffusion information
+# https://mrtrix.readthedocs.io/en/latest/concepts/dw_scheme.html#importing-the-dw-gradient-table
+mrconvert $imgName.nii.gz -fslgrad $imgName.bvec $imgName.bval combined.mif
+
+
+## Denoise:
+dwidenoise combined.mif combined_den.mif 
+
+## Check 
+mrview combined.mif combined_den.mif
+
+## Gibbs ringing:
+mrdegibbs combined_den.mif combined_den_unr.mif 
+  # Axes = 0,1 is axial (transverse) slices
+  # Axes =  0,2 is coronal slices
+  # Axes = 1,2 is sagittal slices
+  # Most often diffusion data is acquired using transverse slices
+
+## You can inspect the results using:
+mrcalc combined_den.mif combined_den_unr.mif -subtract residualUnringed.mif
+mrview combined_den_unr.mif residualUnringed.mif
+
+
+## Extract B0
+dwiextract combined_den_unr.mif - -bzero | mrmath -mean mean_b0_AP.mif -axis 3
+
+## Get reverse encoded values:
+mrconvert b0_PA_folder/ - | mrmath -mean mean_b0_PA.mif -axis 3
+
+## Combine to 1 file:
+mrcat mean_b0_AP.mif mean_b0_PA.mif -axis 3 b0_pair.mif
+
+############ Do Eddy and Motion Correction:
+# https://mrtrix.readthedocs.io/en/latest/reference/commands/dwifslpreproc.html
+
+## If only a single phase encoding is used: - Can find TotalReadoutTime in json (usually)
+dwifslpreproc combined_den_unr.mif DWI_out.mif -rpe_none -pe_dir ap -readout_time 0.040356
+
+## If multiple phase encodes are used:
+dwifslpreproc combined_den_unr.mif DWI_out.mif -rpe_pair -se_epi b0_pair.mif -pe_dir ap -readout_time 0.072 -align_seepi
+
+
+######################################
+
+## Correct for bias fields with N4
+dwibiascorrect ants DWI_out.mif DWI_out_unbiased.mif -bias bias.mif
+
+## Create a mask:
+dwi2mask DWI_out_unbiased.mif mask_dwi.mif
+
+mrview mask_dwi.mif -colourmap 2
+
+
+## Fit a tensor to the data:
+dwi2tensor -mask mask_dwi.mif DWI_out_unbiased.mif outputTensor.mif
+
+## extract from tensor
+tensor2metric \
+  -adc tensorMap/adc.mif \
+  -fa tensorMap/fa.mif \
+  -ad tensorMap/ad.mif \
+  -rd tensorMap/rd.mif \
+  -value tensorMap/eigenValue.mif \
+  -vector tensorMap/eigenVector.mif \
+  -mask mask_dwi.mif \
+  outputTensor.mif
+
+# -adc   compute the mean apparent diffusion coefficient (ADC) of the diffusion tensor. (sometimes also referred to as the mean diffusivity (MD))
+# -fa    compute the fractional anisotropy (FA) of the diffusion tensor.
+# -ad   compute the axial diffusivity (AD) of the diffusion tensor. (equivalent to the principal eigenvalue)
+# -rd image compute the radial diffusivity (RD) of the diffusion tensor. (equivalent to the mean of the two non-principal eigenvalues)
+# -cl image compute the linearity metric of the diffusion tensor. (one of the three Westin shape metrics)
+# -cp image compute the planarity metric of the diffusion tensor. (one of the three Westin shape metrics)
+# -cs image compute the sphericity metric of the diffusion tensor. (one of the three Westin shape metrics)
+# -value image compute the selected eigenvalue(s) of the diffusion tensor.
+# -vector image compute the selected eigenvector(s) of the diffusion tensor.
+# -num sequence specify the desired eigenvalue/eigenvector(s). Note that several eigenvalues can be specified as a number sequence. For example, ‘1,3’ specifies the principal (1) and minor (3) eigenvalues/eigenvectors (default = 1).
+# -modulate choice specify how to modulate the magnitude of the eigenvectors. Valid choices are: none, FA, eigval (default = FA).
+# -mask image only perform computation within the specified binary brain mask image.
+
+###########################################################################
 
 # This section produces unregistered, but topup- and eddy current-corrected DTI
 
