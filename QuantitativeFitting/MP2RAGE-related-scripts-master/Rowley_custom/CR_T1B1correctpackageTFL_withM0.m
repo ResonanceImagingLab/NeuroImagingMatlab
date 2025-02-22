@@ -87,7 +87,9 @@ end
 % else
 %     MP2RAGEimg.img = double(MP2RAGEimg.img)/4095-0.5;
 % end
-if max(MP2RAGEimg(:).img) > 0.55
+checkScale = max(MP2RAGEimg.img(:));
+
+if checkScale > 0.55
     MP2RAGEimg.img = double(MP2RAGEimg.img)/4095-0.5;
 end
 %% now the fun starts
