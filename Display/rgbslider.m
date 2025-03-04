@@ -1,5 +1,7 @@
 %%%%% Inputs must be strings of the pathway to your image
 %%%%% Images must be the same size
+%%%%% Orientation is RPS and forces axial view
+
 
 
 function rgbslider(file1, file2)
