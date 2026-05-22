@@ -1,0 +1,526 @@
+<edu.jhu.ece.iacl.jist.pipeline.parameter.ParamCollection>
+  <connectionCount>9</connectionCount>
+  <children>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamHeader>
+      <className>de.mpg.cbs.jist.utilities.JistUtilitiesCropToROI</className>
+      <version>1.1</version>
+      <uuid>f591f125-170c-4fb9-8330-9a7542eca117</uuid>
+      <name>Algorithm</name>
+      <hidden>true</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamHeader>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume>
+      <rows>-1</rows>
+      <cols>-1</cols>
+      <slices>-1</slices>
+      <components>-1</components>
+      <imageIntent>0</imageIntent>
+      <readerWriter class="edu.jhu.ece.iacl.jist.io.ImageDataReaderWriter">
+        <extensionFilter>
+          <exts>
+            <string>tif</string>
+            <string>tiff</string>
+            <string>lsm</string>
+            <string>stk</string>
+            <string>jpeg</string>
+            <string>jpg</string>
+            <string>bmp</string>
+            <string>gif</string>
+            <string>pict</string>
+            <string>pic</string>
+            <string>png</string>
+            <string>psd</string>
+            <string>dib</string>
+            <string>tga</string>
+            <string>xbm</string>
+            <string>xpm</string>
+            <string>xml</string>
+            <string>pcx</string>
+            <string>ico</string>
+            <string>cur</string>
+            <string>mgh</string>
+            <string>mgz</string>
+            <string>raw</string>
+            <string>img</string>
+            <string>nii</string>
+            <string>nhdr</string>
+            <string>nrrd</string>
+            <string>ima</string>
+            <string>dcm</string>
+            <string>bin</string>
+            <string>map</string>
+            <string>mnc</string>
+            <string>avi</string>
+            <string>imc</string>
+            <string>oly</string>
+            <string>qt</string>
+            <string>mov</string>
+            <string>head</string>
+            <string>brik</string>
+            <string>ics</string>
+            <string>ids</string>
+            <string>hdr</string>
+            <string>spm</string>
+            <string>fits</string>
+            <string>dm3</string>
+            <string>tmg</string>
+            <string>mrc</string>
+            <string>wu</string>
+            <string>sig</string>
+            <string>gedno</string>
+            <string>log</string>
+            <string>ct</string>
+            <string>info</string>
+            <string>info~</string>
+            <string>voi</string>
+            <string>afni</string>
+            <string>par</string>
+            <string>parv2</string>
+            <string>rec</string>
+            <string>frec</string>
+            <string>jp2</string>
+            <string>gz</string>
+            <string>bz2</string>
+            <string>v</string>
+            <string>vtk</string>
+          </exts>
+          <preferredExtension>24</preferredExtension>
+        </extensionFilter>
+        <compressionOptions>
+          <string>none</string>
+          <string>gzip</string>
+          <string>bzip2</string>
+        </compressionOptions>
+        <prefCompression>none</prefCompression>
+      </readerWriter>
+      <extensionFilter reference="../readerWriter/extensionFilter"/>
+      <dialogType>FILE</dialogType>
+      <file>/Users/christopherrowley/Desktop/mars-parcellation/surfaces/crop/exp-0000/exp-0000-B/CropToROI/MNI152_T1_1mm_cpleftcortex.nii</file>
+      <uri serialization="custom">
+        <java.net.URI>
+          <default>
+            <string>file:/Users/christopherrowley/Desktop/mars-parcellation/surfaces/crop/exp-0000/exp-0000-B/CropToROI/MNI152_T1_1mm_cpleftcortex.nii</string>
+          </default>
+        </java.net.URI>
+      </uri>
+      <name>Cropped Image 1</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume>
+      <rows>-1</rows>
+      <cols>-1</cols>
+      <slices>-1</slices>
+      <components>-1</components>
+      <imageIntent>0</imageIntent>
+      <readerWriter class="edu.jhu.ece.iacl.jist.io.ImageDataReaderWriter">
+        <extensionFilter>
+          <exts>
+            <string>tif</string>
+            <string>tiff</string>
+            <string>lsm</string>
+            <string>stk</string>
+            <string>jpeg</string>
+            <string>jpg</string>
+            <string>bmp</string>
+            <string>gif</string>
+            <string>pict</string>
+            <string>pic</string>
+            <string>png</string>
+            <string>psd</string>
+            <string>dib</string>
+            <string>tga</string>
+            <string>xbm</string>
+            <string>xpm</string>
+            <string>xml</string>
+            <string>pcx</string>
+            <string>ico</string>
+            <string>cur</string>
+            <string>mgh</string>
+            <string>mgz</string>
+            <string>raw</string>
+            <string>img</string>
+            <string>nii</string>
+            <string>nhdr</string>
+            <string>nrrd</string>
+            <string>ima</string>
+            <string>dcm</string>
+            <string>bin</string>
+            <string>map</string>
+            <string>mnc</string>
+            <string>avi</string>
+            <string>imc</string>
+            <string>oly</string>
+            <string>qt</string>
+            <string>mov</string>
+            <string>head</string>
+            <string>brik</string>
+            <string>ics</string>
+            <string>ids</string>
+            <string>hdr</string>
+            <string>spm</string>
+            <string>fits</string>
+            <string>dm3</string>
+            <string>tmg</string>
+            <string>mrc</string>
+            <string>wu</string>
+            <string>sig</string>
+            <string>gedno</string>
+            <string>log</string>
+            <string>ct</string>
+            <string>info</string>
+            <string>info~</string>
+            <string>voi</string>
+            <string>afni</string>
+            <string>par</string>
+            <string>parv2</string>
+            <string>rec</string>
+            <string>frec</string>
+            <string>jp2</string>
+            <string>gz</string>
+            <string>bz2</string>
+            <string>v</string>
+            <string>vtk</string>
+          </exts>
+          <preferredExtension>24</preferredExtension>
+        </extensionFilter>
+        <compressionOptions>
+          <string>none</string>
+          <string>gzip</string>
+          <string>bzip2</string>
+        </compressionOptions>
+        <prefCompression>none</prefCompression>
+      </readerWriter>
+      <extensionFilter reference="../readerWriter/extensionFilter"/>
+      <dialogType reference="../../edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume/dialogType"/>
+      <file>/Users/christopherrowley/Desktop/mars-parcellation/surfaces/crop/exp-0000/exp-0000-B/CropToROI/MNI-R_gyri-edit-deep_cpleftcortex.nii</file>
+      <uri serialization="custom">
+        <java.net.URI>
+          <default>
+            <string>file:/Users/christopherrowley/Desktop/mars-parcellation/surfaces/crop/exp-0000/exp-0000-B/CropToROI/MNI-R_gyri-edit-deep_cpleftcortex.nii</string>
+          </default>
+        </java.net.URI>
+      </uri>
+      <name>Cropped Image 2</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>false</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume>
+      <rows>-1</rows>
+      <cols>-1</cols>
+      <slices>-1</slices>
+      <components>-1</components>
+      <imageIntent>0</imageIntent>
+      <readerWriter class="edu.jhu.ece.iacl.jist.io.ImageDataReaderWriter">
+        <extensionFilter>
+          <exts>
+            <string>tif</string>
+            <string>tiff</string>
+            <string>lsm</string>
+            <string>stk</string>
+            <string>jpeg</string>
+            <string>jpg</string>
+            <string>bmp</string>
+            <string>gif</string>
+            <string>pict</string>
+            <string>pic</string>
+            <string>png</string>
+            <string>psd</string>
+            <string>dib</string>
+            <string>tga</string>
+            <string>xbm</string>
+            <string>xpm</string>
+            <string>xml</string>
+            <string>pcx</string>
+            <string>ico</string>
+            <string>cur</string>
+            <string>mgh</string>
+            <string>mgz</string>
+            <string>raw</string>
+            <string>img</string>
+            <string>nii</string>
+            <string>nhdr</string>
+            <string>nrrd</string>
+            <string>ima</string>
+            <string>dcm</string>
+            <string>bin</string>
+            <string>map</string>
+            <string>mnc</string>
+            <string>avi</string>
+            <string>imc</string>
+            <string>oly</string>
+            <string>qt</string>
+            <string>mov</string>
+            <string>head</string>
+            <string>brik</string>
+            <string>ics</string>
+            <string>ids</string>
+            <string>hdr</string>
+            <string>spm</string>
+            <string>fits</string>
+            <string>dm3</string>
+            <string>tmg</string>
+            <string>mrc</string>
+            <string>wu</string>
+            <string>sig</string>
+            <string>gedno</string>
+            <string>log</string>
+            <string>ct</string>
+            <string>info</string>
+            <string>info~</string>
+            <string>voi</string>
+            <string>afni</string>
+            <string>par</string>
+            <string>parv2</string>
+            <string>rec</string>
+            <string>frec</string>
+            <string>jp2</string>
+            <string>gz</string>
+            <string>bz2</string>
+            <string>v</string>
+            <string>vtk</string>
+          </exts>
+          <preferredExtension>24</preferredExtension>
+        </extensionFilter>
+        <compressionOptions>
+          <string>none</string>
+          <string>gzip</string>
+          <string>bzip2</string>
+        </compressionOptions>
+        <prefCompression>none</prefCompression>
+      </readerWriter>
+      <extensionFilter reference="../readerWriter/extensionFilter"/>
+      <dialogType reference="../../edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume/dialogType"/>
+      <name>Cropped Image 3</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>false</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume>
+      <rows>-1</rows>
+      <cols>-1</cols>
+      <slices>-1</slices>
+      <components>-1</components>
+      <imageIntent>0</imageIntent>
+      <readerWriter class="edu.jhu.ece.iacl.jist.io.ImageDataReaderWriter">
+        <extensionFilter>
+          <exts>
+            <string>tif</string>
+            <string>tiff</string>
+            <string>lsm</string>
+            <string>stk</string>
+            <string>jpeg</string>
+            <string>jpg</string>
+            <string>bmp</string>
+            <string>gif</string>
+            <string>pict</string>
+            <string>pic</string>
+            <string>png</string>
+            <string>psd</string>
+            <string>dib</string>
+            <string>tga</string>
+            <string>xbm</string>
+            <string>xpm</string>
+            <string>xml</string>
+            <string>pcx</string>
+            <string>ico</string>
+            <string>cur</string>
+            <string>mgh</string>
+            <string>mgz</string>
+            <string>raw</string>
+            <string>img</string>
+            <string>nii</string>
+            <string>nhdr</string>
+            <string>nrrd</string>
+            <string>ima</string>
+            <string>dcm</string>
+            <string>bin</string>
+            <string>map</string>
+            <string>mnc</string>
+            <string>avi</string>
+            <string>imc</string>
+            <string>oly</string>
+            <string>qt</string>
+            <string>mov</string>
+            <string>head</string>
+            <string>brik</string>
+            <string>ics</string>
+            <string>ids</string>
+            <string>hdr</string>
+            <string>spm</string>
+            <string>fits</string>
+            <string>dm3</string>
+            <string>tmg</string>
+            <string>mrc</string>
+            <string>wu</string>
+            <string>sig</string>
+            <string>gedno</string>
+            <string>log</string>
+            <string>ct</string>
+            <string>info</string>
+            <string>info~</string>
+            <string>voi</string>
+            <string>afni</string>
+            <string>par</string>
+            <string>parv2</string>
+            <string>rec</string>
+            <string>frec</string>
+            <string>jp2</string>
+            <string>gz</string>
+            <string>bz2</string>
+            <string>v</string>
+            <string>vtk</string>
+          </exts>
+          <preferredExtension>24</preferredExtension>
+        </extensionFilter>
+        <compressionOptions>
+          <string>none</string>
+          <string>gzip</string>
+          <string>bzip2</string>
+        </compressionOptions>
+        <prefCompression>none</prefCompression>
+      </readerWriter>
+      <extensionFilter reference="../readerWriter/extensionFilter"/>
+      <dialogType reference="../../edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume/dialogType"/>
+      <name>Cropped Image 4</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>false</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamVolume>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPointInteger>
+      <px>
+        <value class="int">5</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>x</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </px>
+      <py>
+        <value class="int">2</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>y</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </py>
+      <pz>
+        <value class="int">5</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>z</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </pz>
+      <name>Offset</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPointInteger>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPointInteger>
+      <px>
+        <value class="int">182</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>x</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </px>
+      <py>
+        <value class="int">218</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>y</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </py>
+      <pz>
+        <value class="int">182</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>z</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </pz>
+      <name>Uncropped Dimensions</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPointInteger>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPointInteger>
+      <px>
+        <value class="int">100</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>x</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </px>
+      <py>
+        <value class="int">209</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>y</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </py>
+      <pz>
+        <value class="int">163</value>
+        <min class="int">-1000000000</min>
+        <max class="int">1000000000</max>
+        <name>z</name>
+        <hidden>false</hidden>
+        <incomingConnectors/>
+        <mandatory>true</mandatory>
+      </pz>
+      <name>Cropped Dimensions</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPointInteger>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPerformance>
+      <performance>
+        <timeAndMemStamps>
+          <edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary-TimeAndMemoryStamp>
+            <taskName>Algorithm Calculation</taskName>
+            <start>19:00:01</start>
+            <stop>19:00:04</stop>
+            <elapsed>2818</elapsed>
+            <usedMemory>8</usedMemory>
+            <allocatedMemory>112</allocatedMemory>
+            <actualStart>16:02:11</actualStart>
+            <actualStop>16:02:15</actualStop>
+            <actualElapsed>4051</actualElapsed>
+          </edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary-TimeAndMemoryStamp>
+        </timeAndMemStamps>
+        <children>
+          <edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary>
+            <timeAndMemStamps/>
+            <children/>
+          </edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary>
+        </children>
+      </performance>
+      <name>Execution Time</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPerformance>
+  </children>
+  <pkg>Base</pkg>
+  <label>Crop To ROI</label>
+  <name>CropToROI</name>
+  <hidden>false</hidden>
+  <incomingConnectors/>
+  <mandatory>true</mandatory>
+</edu.jhu.ece.iacl.jist.pipeline.parameter.ParamCollection>

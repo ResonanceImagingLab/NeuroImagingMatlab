@@ -22,12 +22,7 @@ if nargin < 4
     background='white';
 end
 if nargin < 5
-    %cmap = spectral;
-    try
-        cmap = inferno; % if missing the ideal colourmap, run something else
-    catch
-        cmap = spectral;
-    end
+    cmap = spectral;
 end
 
 % find cut between hemispheres, assuming they are concatenated
@@ -119,12 +114,9 @@ set(cb,'position',[0.32 0.13 0.35 0.04]); % C.R. removed capital on position
 set(cb,'XAxisLocation','bottom');
 h=get(cb,'Title');
 set(h,'String',title,'Interpreter','none');
-set(cb,'Color','k','FontSize',20);
-set(get(cb,'Title'),'Color','k');
+set(gca,'fontsize',14)
 
-if verLessThan('matlab','25.1')
-    whitebg(gcf, background);
-end
+whitebg(gcf,background);
 set(gcf,'Color',background,'InvertHardcopy','off');
 
 dcm_obj=datacursormode(gcf);

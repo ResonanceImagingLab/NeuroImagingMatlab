@@ -31,6 +31,8 @@ else
     set(cb,'XAxisLocation','bottom');
     set(gca,'fontsize',14)
 end
+set(cb,'Color','k','FontSize',20);
+set(get(cb,'Title'),'Color','k');
 h=get(cb,'Title');
 set(h,'String',title);
 

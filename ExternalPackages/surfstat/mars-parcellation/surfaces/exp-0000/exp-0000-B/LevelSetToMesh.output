@@ -1,0 +1,88 @@
+<edu.jhu.ece.iacl.jist.pipeline.parameter.ParamCollection>
+  <connectionCount>3</connectionCount>
+  <children>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamHeader>
+      <className>de.mpg.cbs.jist.surface.JistSurfaceLevelsetToMesh</className>
+      <version>1.1</version>
+      <uuid>fd4c7198-dc2a-4d28-b0fb-4ecc7e265057</uuid>
+      <name>Algorithm</name>
+      <hidden>true</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamHeader>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamSurface>
+      <readerWriter class="edu.jhu.ece.iacl.jist.io.SurfaceReaderWriter">
+        <extensionFilter>
+          <exts>
+            <string>vtk</string>
+            <string>dx</string>
+            <string>asc</string>
+            <string>wrl</string>
+            <string>xml</string>
+            <string>ascii</string>
+          </exts>
+          <preferredExtension>0</preferredExtension>
+        </extensionFilter>
+      </readerWriter>
+      <extensionFilter reference="../readerWriter/extensionFilter"/>
+      <dialogType>FILE</dialogType>
+      <file>/Users/christopherrowley/Desktop/mars-parcellation/surfaces/exp-0000/exp-0000-B/LevelSetToMesh/right-wm-reduced.vtk</file>
+      <uri serialization="custom">
+        <java.net.URI>
+          <default>
+            <string>file:/Users/christopherrowley/Desktop/mars-parcellation/surfaces/exp-0000/exp-0000-B/LevelSetToMesh/right-wm-reduced.vtk</string>
+          </default>
+        </java.net.URI>
+      </uri>
+      <name>Surface Mesh</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamSurface>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPerformance>
+      <performance>
+        <timeAndMemStamps>
+          <edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary-TimeAndMemoryStamp>
+            <taskName>Algorithm Calculation</taskName>
+            <start>19:00:01</start>
+            <stop>19:00:05</stop>
+            <elapsed>3460</elapsed>
+            <usedMemory>184</usedMemory>
+            <allocatedMemory>276</allocatedMemory>
+            <actualStart>15:59:26</actualStart>
+            <actualStop>15:59:33</actualStop>
+            <actualElapsed>7245</actualElapsed>
+          </edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary-TimeAndMemoryStamp>
+        </timeAndMemStamps>
+        <children>
+          <edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary>
+            <timeAndMemStamps>
+              <edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary-TimeAndMemoryStamp>
+                <taskName>Connectivity Consistent Iso-Surface Generation</taskName>
+                <start>19:00:02</start>
+                <stop>19:00:03</stop>
+                <elapsed>1184</elapsed>
+                <usedMemory>87</usedMemory>
+                <allocatedMemory>141</allocatedMemory>
+                <actualStart>15:59:28</actualStart>
+                <actualStop>15:59:29</actualStop>
+                <actualElapsed>1580</actualElapsed>
+              </edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary-TimeAndMemoryStamp>
+            </timeAndMemStamps>
+            <children/>
+          </edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary>
+        </children>
+      </performance>
+      <name>Execution Time</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPerformance>
+  </children>
+  <pkg>Base</pkg>
+  <label>Level Set To Mesh</label>
+  <name>LevelSetToMesh</name>
+  <hidden>false</hidden>
+  <incomingConnectors/>
+  <mandatory>true</mandatory>
+</edu.jhu.ece.iacl.jist.pipeline.parameter.ParamCollection>

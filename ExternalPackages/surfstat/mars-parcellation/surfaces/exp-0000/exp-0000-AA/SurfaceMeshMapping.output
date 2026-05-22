@@ -1,0 +1,92 @@
+<edu.jhu.ece.iacl.jist.pipeline.parameter.ParamCollection>
+  <connectionCount>4</connectionCount>
+  <children>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamHeader>
+      <className>de.mpg.cbs.jist.cortex.JistCortexSurfaceMeshMapping</className>
+      <version>1.1</version>
+      <uuid>fa4008bd-2142-40cd-9e22-4554bef6fccd</uuid>
+      <name>Algorithm</name>
+      <hidden>true</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamHeader>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamSurface>
+      <readerWriter class="edu.jhu.ece.iacl.jist.io.SurfaceReaderWriter">
+        <extensionFilter>
+          <exts>
+            <string>vtk</string>
+            <string>dx</string>
+            <string>asc</string>
+            <string>wrl</string>
+            <string>xml</string>
+            <string>ascii</string>
+          </exts>
+          <preferredExtension>0</preferredExtension>
+        </extensionFilter>
+      </readerWriter>
+      <extensionFilter reference="../readerWriter/extensionFilter"/>
+      <dialogType>FILE</dialogType>
+      <file>/Users/christopherrowley/Desktop/mars-parcellation/surfaces/exp-0000/exp-0000-AA/SurfaceMeshMapping/left-wm-reduced_left-labels.vtk</file>
+      <uri serialization="custom">
+        <java.net.URI>
+          <default>
+            <string>file:/Users/christopherrowley/Desktop/mars-parcellation/surfaces/exp-0000/exp-0000-AA/SurfaceMeshMapping/left-wm-reduced_left-labels.vtk</string>
+          </default>
+        </java.net.URI>
+      </uri>
+      <name>Mapped Original Surface</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamSurface>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamSurface>
+      <readerWriter class="edu.jhu.ece.iacl.jist.io.SurfaceReaderWriter">
+        <extensionFilter>
+          <exts>
+            <string>vtk</string>
+            <string>dx</string>
+            <string>asc</string>
+            <string>wrl</string>
+            <string>xml</string>
+            <string>ascii</string>
+          </exts>
+          <preferredExtension>0</preferredExtension>
+        </extensionFilter>
+      </readerWriter>
+      <extensionFilter reference="../readerWriter/extensionFilter"/>
+      <dialogType reference="../../edu.jhu.ece.iacl.jist.pipeline.parameter.ParamSurface/dialogType"/>
+      <name>Mapped Inflated Surface (opt)</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>false</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamSurface>
+    <edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPerformance>
+      <performance>
+        <timeAndMemStamps>
+          <edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary-TimeAndMemoryStamp>
+            <taskName>Algorithm Calculation</taskName>
+            <start>19:00:01</start>
+            <stop>19:00:03</stop>
+            <elapsed>1729</elapsed>
+            <usedMemory>55</usedMemory>
+            <allocatedMemory>162</allocatedMemory>
+            <actualStart>18:07:34</actualStart>
+            <actualStop>18:07:38</actualStop>
+            <actualElapsed>3023</actualElapsed>
+          </edu.jhu.ece.iacl.jist.pipeline.PerformanceSummary-TimeAndMemoryStamp>
+        </timeAndMemStamps>
+        <children/>
+      </performance>
+      <name>Execution Time</name>
+      <hidden>false</hidden>
+      <incomingConnectors/>
+      <mandatory>true</mandatory>
+    </edu.jhu.ece.iacl.jist.pipeline.parameter.ParamPerformance>
+  </children>
+  <pkg>Base</pkg>
+  <label>Surface Mesh Mapping</label>
+  <name>SurfaceMeshMapping</name>
+  <hidden>false</hidden>
+  <incomingConnectors/>
+  <mandatory>true</mandatory>
+</edu.jhu.ece.iacl.jist.pipeline.parameter.ParamCollection>

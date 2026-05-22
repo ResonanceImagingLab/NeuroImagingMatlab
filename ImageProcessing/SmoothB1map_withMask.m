@@ -35,8 +35,11 @@ B1(~isfinite(B1)) = 0;
 B1(~valid) = 0;
 
 % Smooth numerator and denominator
-num = imgaussfilt(B1 .* valid, sigma);
-den = imgaussfilt(double(valid), sigma);
+num = imgaussfilt3(B1 .* valid, sigma);
+den = imgaussfilt3(double(valid), sigma);
+
+% figure; imshow3Dfull( B1, [0.6 1.5], turbo)
+% figure; imshow3Dfull( num, [0.6 1.5], turbo)
 
 % Normalize so only valid neighbours contribute
 B1s = num ./ max(den, eps);
